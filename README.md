@@ -4,7 +4,7 @@
 
 ## 보는 법
 
-- 웹: GitHub Pages 주소 (저장소 Settings → Pages → Branch `main` / root 로 켠다).
+- 웹: https://jujeongmin.github.io/nine-chronicles-assets/
 - 내 컴퓨터: 폴더를 받아 `열기-윈도우.bat`(윈도우) 또는 `열기-맥.command`(맥)을 더블클릭.
   `index.html` 을 바로 열면 브라우저 보안 때문에 목록이 안 뜬다.
 
