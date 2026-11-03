@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Library — 게임 에셋 검색</title>
+<meta name="description" content="게임에서 쓴 캐릭터·아이콘·UI·이펙트·파티클을 게임별·종류별로 찾아보고 URL로 바로 가져다 쓰는 에셋 라이브러리.">
+<meta property="og:title" content="Asset Library">
+<meta property="og:description" content="게임별 캐릭터·아이콘·이펙트 에셋. 검색하고 바로 쓰세요.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ink:#14151d; --plate:#1c1e28; --plate-2:#232633; --line:#2e3140;
+  --text:#e9eaf2; --muted:#8e92a6; --amber:#d9a05b; --violet:#8b7cf6;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,"Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  --display:"Bricolage Grotesque",var(--sans);
+  --barH:132px;
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{min-height:100%}   /* height:100% 면 한 화면 넘게 내리는 순간 위 칩 줄이 같이 올라가 버린다 */
+body{margin:0;background:var(--ink);color:var(--text);font:400 14px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:var(--violet)}
+
+/* ---- 상단 바 ---------------------------------------------------------- */
+.bar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--ink) 94%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1760px;margin:0 auto;padding:14px 22px 10px;display:flex;flex-direction:column;gap:11px}
+.row1{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.brand h1{font:700 19px/1.1 var(--display);letter-spacing:-.015em;margin:0}
+.brand .sub{color:var(--muted);font-size:12px}
+.back{flex:0 0 auto;font-size:12.5px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap;
+  background:var(--violet);border:1px solid var(--violet);border-radius:999px;padding:6px 13px}
+.back:hover{color:#fff;filter:brightness(1.1)}
+.search{flex:1 1 280px;min-width:200px;position:relative}
+.search input{width:100%;background:var(--plate);border:1px solid var(--line);border-radius:999px;color:var(--text);
+  padding:9px 38px 9px 16px;font:400 14px var(--sans);outline:none}
+.search input:focus{border-color:var(--violet)}
+.search input::placeholder{color:var(--muted)}
+.search .clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
+  color:var(--muted);cursor:pointer;padding:6px 9px;border-radius:999px;line-height:1;font-size:15px}
+.search .clear:hover{color:var(--text)}
+.tally{flex:0 0 auto;color:var(--muted);font:500 12px var(--mono);white-space:nowrap}
+.tally b{color:var(--text)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{background:var(--plate);border:1px solid var(--line);color:var(--muted);border-radius:999px;
+  padding:5px 13px;font-size:12.5px;cursor:pointer;white-space:nowrap;transition:.12s}
+.chip:hover{color:var(--text);border-color:#454a5e}
+.chip[aria-pressed=true]{background:var(--violet);border-color:var(--violet);color:#fff;font-weight:600}
+.chip .n{opacity:.6;font-family:var(--mono);font-size:11px;margin-left:5px}
+.chips-label{align-self:center;min-width:30px;color:var(--muted);font-size:12px;font-weight:600}
+.pickbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 11px;border:1px solid var(--violet);border-radius:8px;
+  background:color-mix(in srgb,var(--violet) 12%,transparent);font-size:12.5px}
+.pickbar[hidden]{display:none}
+.card{position:relative}
+.pick{position:absolute;top:7px;right:7px;width:18px;height:18px;margin:0;accent-color:var(--violet);cursor:pointer;z-index:2}
+
+/* ---- 2단 레이아웃 ------------------------------------------------------ */
+.app{max-width:1760px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 400px}
+.grid{padding:18px 22px 90px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:13px;align-content:start}
+.nothing{grid-column:1/-1;color:var(--muted);padding:56px 20px;text-align:center;line-height:1.9}
+.nothing h2{margin:0 0 8px;font:600 15px var(--sans);color:var(--text)}
+.nothing p{margin:0 0 6px;font-size:13px}
+.nothing code{background:var(--plate);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+
+/* ---- 카드 -------------------------------------------------------------- */
+.card{display:flex;flex-direction:column;text-align:left}
+.plate-btn{background:none;border:0;padding:0;margin:0;display:block;width:100%;cursor:pointer}
+.namerow{display:flex;align-items:flex-start;gap:5px;margin-top:7px}
+.mini{flex:0 0 auto;background:var(--plate);border:1px solid var(--line);border-radius:6px;
+  color:var(--muted);font:500 10px/1.5 var(--mono);padding:2px 6px;cursor:pointer;white-space:nowrap}
+.mini:hover{color:var(--text);border-color:#454a5e}
+.mini.ok{color:var(--amber);border-color:var(--amber)}
+.thumb{position:relative;aspect-ratio:1;background:var(--plate);border:1px solid var(--line);border-radius:11px;
+  overflow:hidden;display:grid;place-items:center;transition:.12s}
+.card:hover .thumb{border-color:#454a5e}
+.card[aria-current=true] .thumb{border-color:var(--violet);box-shadow:0 0 0 2px color-mix(in srgb,var(--violet) 35%,transparent)}
+.thumb canvas{display:block;width:100%;height:100%}
+.thumb .tag{position:absolute;top:6px;left:6px;background:color-mix(in srgb,var(--ink) 78%,transparent);
+  border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:10.5px;color:var(--muted)}
+.card .name{flex:1 1 auto;min-width:0;font:500 12px/1.35 var(--mono);color:var(--text);word-break:break-all}
+.card[aria-current=true] .name{color:var(--violet)}
+
+/* ---- 상세 패널 --------------------------------------------------------- */
+.detail{position:sticky;top:var(--barH);height:calc(100vh - var(--barH));overflow-y:auto;
+  border-left:1px solid var(--line);padding:20px 20px 60px;background:color-mix(in srgb,var(--ink) 60%,#000 6%)}
+.dt-empty{color:var(--muted);font-size:13px;line-height:1.8;padding:40px 6px;text-align:center}
+.dt-close{display:none}
+.dt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.dt-title{display:flex;align-items:baseline;gap:7px;min-width:0}
+.dt-head h2{margin:0;font:500 15px/1.3 var(--mono);word-break:break-all}
+.badge{flex:0 0 auto;background:var(--plate-2);border:1px solid var(--line);border-radius:999px;
+  padding:3px 10px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.stage{aspect-ratio:4/3;border:1px solid var(--line);border-radius:11px;overflow:hidden;display:grid;place-items:center;background:var(--plate)}
+.stage canvas{display:block;width:100%;height:100%}
+.stage[data-bg=light]{background:#e7e9ef}
+.stage[data-bg=checker]{background-color:#9aa0ae;
+  background-image:linear-gradient(45deg,#727888 25%,transparent 25%),linear-gradient(-45deg,#727888 25%,transparent 25%),
+  linear-gradient(45deg,transparent 75%,#727888 75%),linear-gradient(-45deg,transparent 75%,#727888 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:10px 0 4px}
+.seg{display:inline-flex;background:var(--plate);border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:none;border:0;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--plate-2);color:var(--text)}
+.btn{background:var(--plate);border:1px solid var(--line);border-radius:8px;padding:5px 11px;font-size:12px;
+  color:var(--muted);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{color:var(--text);border-color:#454a5e}
+.btn.ok{color:var(--amber);border-color:var(--amber)}
+.btn.primary{background:var(--violet);border-color:var(--violet);color:#fff;font-weight:600}
+.btn.primary:hover{color:#fff;border-color:var(--violet)}
+.btn.primary.ok{background:var(--amber);border-color:var(--amber);color:#18120a}
+.hint{margin:9px 0 0;font-size:11.5px;line-height:1.65;color:var(--muted)}
+.motion-note{margin:0;padding:7px 11px;border:1px solid var(--amber);border-radius:8px;
+  background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--text);font-size:12px;line-height:1.5}
+.motion-note b{color:var(--amber)}
+.strip{display:flex;gap:5px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:thin}
+.strip canvas{flex:0 0 auto;width:46px;height:46px;border:1px solid var(--line);border-radius:7px;background:var(--plate);cursor:pointer}
+.strip canvas[aria-current=true]{border-color:var(--violet)}
+.meta{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:12.5px}
+.meta dt{color:var(--muted)}
+.meta dd{margin:0;font-family:var(--mono);font-size:12px;word-break:break-all}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.snip{background:var(--plate);border:1px solid var(--line);border-radius:9px;padding:11px 12px;
+  font:400 11.5px/1.6 var(--mono);color:#c9cde0;overflow-x:auto;margin:10px 0 0;white-space:pre}
+.dt-sec{margin-top:20px;font:600 11px var(--sans);letter-spacing:.08em;color:var(--muted)}
+.scrim{display:none}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .detail{position:fixed;inset:auto 0 0 0;height:min(80vh,660px);top:auto;z-index:50;
+    border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;background:var(--ink);
+    transform:translateY(102%);transition:transform .22s ease;box-shadow:0 -18px 50px #0008}
+  .detail.open{transform:none}
+  .dt-head{padding-right:36px}
+  .dt-close{display:block;position:absolute;top:12px;right:14px;background:var(--plate);border:1px solid var(--line);
+    border-radius:999px;width:30px;height:30px;line-height:1;cursor:pointer;color:var(--muted);font-size:16px;z-index:2}
+  .scrim.on{display:block;position:fixed;inset:0;background:#0009;z-index:40}
+  .grid{padding:16px 14px 40px;grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .bar{position:static}   /* 칩이 세 줄이라 붙여 두면 휴대폰 화면 절반을 가린다 */
+  .bar-in{padding:12px 14px 9px}
+}
+@media (prefers-reduced-motion:reduce){ .detail{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="bar" id="bar">
+  <div class="bar-in">
+    <div class="row1">
+      <div class="brand">
+        <h1>Asset Library</h1>
+        <span class="sub" id="sub">불러오는 중…</span>
+      </div>
+      <div class="search">
+        <input id="q" type="search" placeholder="검색 — id, 이름, 번개, 아우라…" aria-label="에셋 검색" autocomplete="off">
+        <button class="clear" id="qClear" type="button" aria-label="검색어 지우기" hidden>&times;</button>
+      </div>
+      <div class="tally" id="tally"></div>
+      <button class="btn" id="pickAllBtn" type="button" title="지금 화면에 보이는 에셋을 전부 골라 한 번에 받습니다">전부 고르기</button>
+      <button class="btn" id="playBtn" type="button" aria-pressed="true">정지</button>
+      <button class="btn primary" id="setupBtn" type="button"
+        title="쓰는 AI 도구에 프로젝트당 한 번만 붙여넣으면 됩니다. 그 뒤로는 id 만 말하면 됩니다">AI에 연결하기</button>
+    </div>
+    <div class="chips" id="gameChips"></div>
+    <div class="chips" id="groupChips"></div>
+    <div class="chips" id="chips"></div>
+    <div class="pickbar" id="pickBar" hidden></div>
+    <p class="motion-note" id="motionNote" hidden>
+      OS 의 <b>동작 줄이기</b> 설정이 켜져 있어 멈춘 채로 시작했습니다.
+      위의 <b>재생</b> 을 누르면 움직입니다.
+    </p>
+  </div>
+</header>
+
+<div class="app">
+  <main class="grid" id="grid" aria-label="에셋 목록"></main>
+  <aside class="detail" id="detail" aria-label="에셋 상세"></aside>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<noscript><p style="padding:24px">이 페이지는 자바스크립트가 있어야 동작합니다.</p></noscript>
+
+<script src="./character-loader.js?v=4"></script>
+<script src="./particles.js?v=2"></script>
+<script src="https://unpkg.com/@esotericsoftware/spine-webgl@4.1.24/dist/iife/spine-webgl.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ── 상수 ──────────────────────────────────────────────────────────────
+ * 캐릭터·아이콘·이펙트·파티클을 한 그리드에서 게임 → 종류 → 세부 순으로 거른다.
+ * 데이터는 characters.json · icons.json · effects.json (스프라이트, 전부 같은
+ * CharacterLib 형식) + particles.json (파티클 설계, ParticleFX).
+ * 항목이 늘어나면 이 페이지는 고치지 않아도 그대로 그리드에 나타난다.
+ * 스키마는 CHARACTERS.md.
+ * ────────────────────────────────────────────────────────────────────── */
+
+// 지금 열린 주소를 기준으로 한다. file:// 로 열었을 때만 로컬 서버 기본 주소를 쓴다.
+var SITE_BASE = (location.protocol === 'http:' || location.protocol === 'https:')
+  ? location.origin + location.pathname.replace(/[^/]*$/, '')
+  : 'http://localhost:8765/';
+var THUMB = 150, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+// 종류(위 칸) → 세부(아래 칸). 세부 키는 매니페스트의 category, 파티클은 'pfx'.
+// 여기 없는 category 가 생기면 '기타' 종류로 모인다.
+var GROUPS = [
+  { key: 'character', label: '캐릭터', cats: ['humanoid', 'beast', 'animal', 'monster'] },
+  { key: 'pixel', label: '픽셀', cats: ['pixel', 'creature'] },
+  { key: 'item', label: '아이템', cats: ['item'] },
+  { key: 'icon', label: '아이콘', cats: ['weapon', 'skill_icon', 'equipment_icon'] },
+  { key: 'prop', label: '배경 오브젝트', cats: ['building', 'prop'] },
+  { key: 'background', label: '배경', cats: ['background', 'scene', 'tile'] },
+  { key: 'ui', label: 'UI', cats: ['ui'] },
+  { key: 'effect', label: '이펙트', cats: ['impact', 'lightning', 'explosion', 'projectile', 'zone', 'aura', 'misc', 'single', 'pfx'] }
+];
+var PFX_LABEL = '파티클';
+
+var els = {
+  sub: document.getElementById('sub'),
+  q: document.getElementById('q'),
+  qClear: document.getElementById('qClear'),
+  tally: document.getElementById('tally'),
+  pickAllBtn: document.getElementById('pickAllBtn'),
+  pickBar: document.getElementById('pickBar'),
+  playBtn: document.getElementById('playBtn'),
+  setupBtn: document.getElementById('setupBtn'),
+  gameChips: document.getElementById('gameChips'),
+  groupChips: document.getElementById('groupChips'),
+  chips: document.getElementById('chips'),
+  motionNote: document.getElementById('motionNote'),
+  grid: document.getElementById('grid'),
+  detail: document.getElementById('detail'),
+  scrim: document.getElementById('scrim')
+};
+
+var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var params = new URLSearchParams(location.search);
+var state = {
+  lib: null, pfx: null,
+  game: params.get('game') || 'all',
+  group: params.get('group') || 'all',
+  // ?filter=animated 는 예전 캐릭터 페이지 링크
+  cat: params.get('cat') || (params.get('filter') === 'animated' ? 'animated' : 'all'),
+  query: '', playing: !reduceMotion, current: null, bg: 'dark', scale: 1, anim: null, animName: null,
+  picked: {}      // 카드 체크 칸으로 고른 id — 한 압축으로 받는다
+};
+var ALL = [];   // 스프라이트(Character) + 파티클 자리표({ id, category: 'pfx', game, pfx: true })
+var cards = []; // { character, canvas, ctx, clip, playhead }
+
+/* ── 유틸 ──────────────────────────────────────────────────────────── */
+
+function el(tag, attrs, children) {
+  var n = document.createElement(tag);
+  for (var k in attrs || {}) {
+    if (k === 'text') n.textContent = attrs[k];
+    else if (k.indexOf('on') === 0) n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  }
+  (children || []).forEach(function (c) { n.appendChild(c); });
+  return n;
+}
+
+function copy(text, btn) {
+  navigator.clipboard.writeText(text).then(function () {
+    if (!btn) return;
+    var was = btn.textContent;
+    btn.textContent = '복사됨';
+    btn.classList.add('ok');
+    setTimeout(function () { btn.textContent = was; btn.classList.remove('ok'); }, 1100);
+  });
+}
+
+/* ── 로드 ──────────────────────────────────────────────────────────── */
+
+Promise.all([
+  CharacterLib.load(['./characters.json', './icons.json', './effects.json']),
+  // 파티클 설계는 909KB 한 덩어리. 로컬에서 여니 처음에 같이 받는다.
+  ParticleFX.load('./particles.json', { resolveTexture: resolveTexture })
+]).then(function (loaded) {
+  var lib = loaded[0], pfx = loaded[1];
+  state.lib = lib;
+  state.pfx = pfx;
+  ALL = lib.characters.concat(pfx.ids().sort().map(function (id) {
+    return { id: id, name: id, category: 'pfx', game: pfx.spec.game, pfx: true };
+  }));
+  els.sub.textContent = '에셋 ' + ALL.length + '개 · 움직이는 것 ' + ALL.filter(hasAnimation).length + '개';
+  if (reduceMotion) { els.motionNote.hidden = false; els.playBtn.textContent = '재생'; els.playBtn.setAttribute('aria-pressed', 'false'); }
+  buildChips();
+  renderGrid();
+  requestAnimationFrame(tick);
+}).catch(function (err) {
+  els.sub.textContent = '로드 실패';
+  els.grid.innerHTML = '';
+  els.grid.appendChild(el('div', { class: 'nothing' }, [
+    el('h2', { text: '에셋 목록을 불러오지 못했습니다' }),
+    el('p', { text: String(err && err.message || err) }),
+    location.protocol === 'file:' ? el('p', { text: '파일을 직접 열면 브라우저가 막습니다. 폴더의 "열기-윈도우.bat"(맥은 "열기-맥.command")로 여세요.' }) : document.createTextNode('')
+  ]));
+});
+
+/* ── 칩 ────────────────────────────────────────────────────────────── */
+
+function hasAnimation(c) {
+  if (c.pfx) return true;
+  return !!c.spine || c.animationNames().some(function (name) { return c.getClip(name).frames > 1; });
+}
+
+// 게임 칸 — game 이 없는 항목은 'none'(출처 미상)으로 묶는다.
+function gameOf(c) { return c.game || 'none'; }
+function gameLabel(key) { return key === 'none' ? '출처 미상' : (state.lib.games[key] || key); }
+function catLabel(key) { return key === 'pfx' ? PFX_LABEL : state.lib.categoryLabel(key); }
+function groupOf(c) {
+  for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].cats.indexOf(c.category) !== -1) return GROUPS[i].key;
+  return 'etc';
+}
+function isEffect(c) { return groupOf(c) === 'effect'; }
+
+// 위 칸에서 고른 것까지만 통과시킨다 — level 0: 게임, 1: + 종류, 2: + 세부
+function passes(c, level) {
+  if (state.game !== 'all' && gameOf(c) !== state.game) return false;
+  if (level >= 1 && state.group !== 'all' && groupOf(c) !== state.group) return false;
+  if (level >= 2 && state.cat === 'animated' && !hasAnimation(c)) return false;
+  if (level >= 2 && state.cat !== 'all' && state.cat !== 'animated' && c.category !== state.cat) return false;
+  return true;
+}
+
+function syncBarHeight() {
+  document.documentElement.style.setProperty('--barH', document.getElementById('bar').offsetHeight + 'px');
+}
+window.addEventListener('resize', syncBarHeight);
+
+function countBy(list, keyOf) {
+  var n = {};
+  list.forEach(function (c) { var k = keyOf(c); n[k] = (n[k] || 0) + 1; });
+  return n;
+}
+
+function buildChips() {
+  var lib = state.lib;
+  // 주소로 들어온 칸이 비어 있으면 '전체'로 되돌린다
+  var gameCounts = countBy(ALL, gameOf);
+  if (!gameCounts[state.game]) state.game = 'all';
+  var inGame = ALL.filter(function (c) { return passes(c, 0); });
+  var groupCounts = countBy(inGame, groupOf);
+  if (!groupCounts[state.group]) state.group = 'all';
+  var inGroup = inGame.filter(function (c) { return passes(c, 1); });
+  var catCounts = countBy(inGroup, function (c) { return c.category; });
+  if (state.cat !== 'animated' && !catCounts[state.cat]) state.cat = 'all';
+  // games 이름표 순서대로, 이름표에 없는 키(출처 미상 등)는 뒤에
+  var gameOrder = Object.keys(lib.games).concat(Object.keys(gameCounts).filter(function (k) { return !(k in lib.games); }));
+  var groups = GROUPS.concat(groupCounts.etc ? [{ key: 'etc', label: '기타', cats: Object.keys(lib.categories).filter(function (k) {
+    return groupOf({ category: k }) === 'etc';
+  }) }] : []);
+  var group = groups.filter(function (g) { return g.key === state.group; })[0];
+
+  row(els.gameChips, '게임', 'game', ALL.length, gameOrder.map(function (k) {
+    return { key: k, label: gameLabel(k), n: gameCounts[k] || 0 };
+  }));
+  row(els.groupChips, '종류', 'group', inGame.length, groups.map(function (g) {
+    return { key: g.key, label: g.label, n: groupCounts[g.key] || 0 };
+  }));
+  // 세부 — 고른 종류 안의 칸들. 종류가 한 칸뿐이면(픽셀, UI…) 세부는 '애니메이션 있음'만 남는다.
+  var subs = [{ key: 'animated', label: '애니메이션 있음', n: inGroup.filter(hasAnimation).length }];
+  if (group && group.cats.length > 1) {
+    subs = subs.concat(group.cats.map(function (k) { return { key: k, label: catLabel(k), n: catCounts[k] || 0 }; }));
+  }
+  row(els.chips, '세부', 'cat', inGroup.length, subs);
+  syncBarHeight();   // 칩 줄 길이가 바뀌면 머리 높이도 바뀐다 — 상세 창이 그 아래에 붙게
+
+  function row(box, title, field, total, defs) {
+    box.innerHTML = '';
+    box.appendChild(el('span', { class: 'chips-label', text: title }));
+    box.appendChild(chip(field, 'all', '전체', total));
+    defs.forEach(function (d) {
+      // 고른 위 칸에 없는 것은 숨긴다 (지금 눌려 있는 칩만은 남겨서 빈 화면 이유가 보이게)
+      if (d.n || state[field] === d.key) box.appendChild(chip(field, d.key, d.label, d.n));
+    });
+  }
+
+  function chip(field, key, label, n) {
+    var btn = el('button', {
+      class: 'chip', type: 'button', 'aria-pressed': String(state[field] === key),
+      onclick: function () {
+        state[field] = key;
+        if (field === 'game') state.group = state.cat = 'all';
+        if (field === 'group') state.cat = 'all';
+        // ?game=dh&group=effect 링크로 그 화면을 바로 열 수 있게 주소에 남긴다
+        var p = new URLSearchParams();
+        ['game', 'group', 'cat'].forEach(function (f) { if (state[f] !== 'all') p.set(f, state[f]); });
+        history.replaceState(null, '', location.pathname + (String(p) ? '?' + p : '') + location.hash);
+        buildChips(); renderGrid();
+      }
+    }, [document.createTextNode(label)]);
+    btn.appendChild(el('span', { class: 'n', text: String(n) }));
+    return btn;
+  }
+}
+
+/* ── 필터 ──────────────────────────────────────────────────────────── */
+
+function filtered() {
+  var q = state.query.trim().toLowerCase();
+  return ALL.filter(function (c) {
+    if (!passes(c, 2)) return false;
+    if (!q) return true;
+    // 이펙트는 이름이 없어서 '번개' '아우라' 같은 칸 이름으로도 찾게 한다
+    return [c.id, c.name || '', catLabel(c.category), gameLabel(gameOf(c))].some(function (s) {
+      return s.toLowerCase().indexOf(q) !== -1;
+    });
+  });
+}
+
+els.q.addEventListener('input', function () {
+  state.query = els.q.value;
+  els.qClear.hidden = !state.query;
+  if (state.lib) renderGrid();
+});
+els.qClear.addEventListener('click', function () {
+  els.q.value = ''; state.query = ''; els.qClear.hidden = true;
+  if (state.lib) renderGrid();
+});
+els.playBtn.addEventListener('click', function () {
+  state.playing = !state.playing;
+  els.playBtn.textContent = state.playing ? '정지' : '재생';
+  els.playBtn.setAttribute('aria-pressed', String(state.playing));
+});
+
+/**
+ * 프로젝트당 한 번 붙여넣는 연결 프롬프트 — effects 라이브러리의 "AI에
+ * 연결하기"와 같은 역할. 쓰는 AI 도구의 규칙 파일에 넣어 두면 그 뒤로는
+ * id(+ 여러 모습이 있으면 그 중 어느 것인지)만 말해도 된다.
+ */
+function setupPrompt() {
+  var base = SITE_BASE;
+  var local = 'assets/library/';   // 게임 프로젝트 안에 복사해 둘 곳 (예시)
+  var lib = state.lib;
+  var all = lib ? lib.characters.filter(function (c) { return !isEffect(c); }) : [];
+  var effects = lib ? lib.characters.filter(isEffect) : [];
+  var counts = countBy(all, function (c) { return c.category; });
+  var catLine = Object.keys(counts).map(function (k) { return catLabel(k) + ' ' + counts[k]; }).join(' · ');
+  var spineCount = all.filter(function (c) { return c.spine; }).length;
+
+  return [
+    '이 게임 에셋 라이브러리(캐릭터·아이콘·UI·배경·이펙트·파티클)를 이 프로젝트에서 쓸 수 있게 붙여줘.',
+    '매니페스트가 넷이다: characters.json · icons.json (캐릭터·아이콘·UI·배경), effects.json (이펙트), particles.json (파티클). id 는 서로 안 겹친다.',
+    '',
+    '베이스: ' + base,
+    '',
+    '베이스 주소는 내 컴퓨터에서 라이브러리(열기-윈도우.bat)를 켜 둔 동안만 열린다.',
+    '그래서 게임이 이 주소를 직접 읽게 하지 말고, 쓸 에셋의 파일을 베이스 + 경로에서 받아',
+    '이 프로젝트 안 ' + local + ' 에 같은 경로로 복사해서 쓴다 (경로를 그대로 두면 매니페스트 경로가 맞는다).',
+    '주소가 안 열리면 나한테 라이브러리를 켜 달라고 말한다.',
+    '',
+    '에셋 하나에 필요한 파일:',
+    '  - animations 의 탭마다 file (납작한 항목은 file 하나). 가로 한 줄 시트이고, 프레임 크기·수·fps 는 매니페스트에 있다.',
+    '  - spine 이 있으면 skeleton · atlas 와, atlas 텍스트 안에 적힌 그림 파일(atlas 와 같은 폴더). variants 도 같다.',
+    '  - layout 이 있으면 그 JSON (타일셋 배치표).',
+    '  - 파티클은 particles.json 의 그 id 설계와, 그 설계가 쓰는 텍스처 그림.',
+    '  - 로더를 쓰면 character-loader.js (캐릭터·아이콘·UI·배경) / loader.js (이펙트) / particles.js 도 복사한다.',
+    '  사람이 받을 때는 상세 창의 "전체 받기 (ZIP)" 에 위 파일이 다 들어 있다.',
+    '',
+    '캐릭터·아이콘·UI·배경 ' + all.length + '개 (' + catLine + '), 그중 진짜 Spine 애니메이션 ' + spineCount + '개',
+    '  매니페스트: ' + base + 'characters.json',
+    '  로더(정지 이미지 전용): ' + base + 'character-loader.js',
+    '',
+    '항목마다 세 형식이 섞여 있다 — 캐릭터마다 다르니 매번 characters.json에서 확인:',
+    '  A. 모습이 하나뿐인 정지 이미지: { id, name, category, file, frameWidth, frameHeight, frames, cols, rows }',
+    '     frames가 1보다 크면 정지컷 여러 장을 이어붙인 진짜 프레임 애니메이션(걷기/공격 등)이다.',
+    '  B. 모습이 여러 개(스킨·표정·성장단계): { id, name, category, defaultAnimation,',
+    '     animations: { 이름: {file, frameWidth, frameHeight, frames, cols, rows}, ... } }',
+    '     예: mage 는 default/expr_idle/expr_attack/... 여러 개, valkyrie 는 default/black/brown/whitegold',
+    '  C. `spine` 필드가 있으면 원본 게임사가 만든 진짜 Spine 스켈레톤 애니메이션이다 —',
+    '     A/B의 정지 이미지 위에 "추가로" 얹혀 있고, 이 경우 아래 스니펫으로 대신 재생한다',
+    '     (A/B의 file/frames는 이 캐릭터에서는 안 쓴다):',
+    '     spine: { skeleton, atlas, skin?, defaultAnimation, animations: [...], variants?: [...] }',
+    '       - skeleton: ".json"으로 끝나면 텍스트 SkeletonJson, 아니면(.skel.bytes 등) SkeletonBinary로 읽는다',
+    '       - skin: 있으면 "default" 스킨과 합쳐서(Skin.addSkin) 적용 — 색상 변형이 스킨으로 들어있는 경우',
+    '       - variants: 있으면 완전히 다른 skeleton/atlas 세트(자체 skin 포함 가능)로 통째로 갈아 끼우는',
+    '         추가 색상/장식판 — variants[].key/label로 어떤 건지 알 수 있다',
+    '  game: 어느 게임에서 쓴 에셋인지 (예: "dh"). 이름표는 매니페스트 맨 위 games 에 있다. 없으면 출처 미상.',
+    '     한 게임 안에서는 그림 스타일이 같으니, 같이 쓸 에셋은 같은 game 에서 고른다.',
+    '  pixelArt: true 면 픽셀아트다. 확대해서 그릴 때 보간을 끈다 (ctx.imageSmoothingEnabled = false, Phaser 는 pixelArt: true).',
+    '  layout: 타일셋(category tile)의 배치표 JSON 경로 — 칸 위치(x, y)마다 네 모서리(NE·NW·SE·SW)가 lower/upper 지형 중 무엇인지.',
+    '',
+    '정지 이미지(A/B) 재생:',
+    "  const lib = await CharacterLib.load('" + local + "characters.json');",
+    "  // 아이콘(weapon / skill_icon / equipment_icon)은 icons.json 에 따로: CharacterLib.load(['" + local + "characters.json', '" + local + "icons.json'])",
+    "  await lib.preload(['<id>']);",
+    "  const anim = lib.play('<id>', { loop: true });              // 모습 하나뿐일 때",
+    "  const anim2 = lib.play('<id>', '<모습이름>', { loop: true }); // 여러 모습 중 하나",
+    '  anim.update().draw(ctx, x, y, { scale: 1 });   // 매 프레임, x/y는 중심',
+    '',
+    '진짜 Spine 재생 (spine-webgl 필요, CDN에서 그대로 로드하면 됨):',
+    '  <script src="https://unpkg.com/@esotericsoftware/spine-webgl@4.1.24/dist/iife/spine-webgl.js"><\/script>',
+    '  const am = new spine.AssetManager(gl, "' + local + '");',
+    "  am.loadTextureAtlas(c.spine.atlas);",
+    '  if (/\\.json$/i.test(c.spine.skeleton)) am.loadJson(c.spine.skeleton);',
+    '  else am.loadBinary(c.spine.skeleton);',
+    '  // 로딩 끝나면(am.isLoadingComplete()):',
+    '  const atlas = am.require(c.spine.atlas);',
+    '  const loader = new spine.AtlasAttachmentLoader(atlas);',
+    '  const reader = /\\.json$/i.test(c.spine.skeleton) ? new spine.SkeletonJson(loader) : new spine.SkeletonBinary(loader);',
+    '  const skeletonData = reader.readSkeletonData(am.require(c.spine.skeleton));',
+    '  const skeleton = new spine.Skeleton(skeletonData);',
+    '  if (c.spine.skin) {',
+    '    const combined = new spine.Skin("combined");',
+    '    combined.addSkin(skeletonData.findSkin("default"));',
+    '    combined.addSkin(skeletonData.findSkin(c.spine.skin));',
+    '    skeleton.setSkin(combined);',
+    '  }',
+    '  skeleton.setSlotsToSetupPose();',
+    '  const state = new spine.AnimationState(new spine.AnimationStateData(skeletonData));',
+    '  state.setAnimation(0, "<동작이름>", true);   // 예: "Attack" — c.spine.animations 중 하나, loop=true',
+    '  // 매 프레임: state.update(dt); state.apply(skeleton); skeleton.updateWorldTransform(); renderer.drawSkeleton(skeleton, true);',
+    '',
+    '동작(모션) 바꾸는 건 매번 새로 로드하는 게 아니라 이미 재생 중인 state에',
+    '  state.setAnimation(0, "<동작이름>", true) 만 다시 부르면 된다.',
+    'variants로 색상/장식만 바꿀 땐 skeleton/atlas를 그 variant 것으로 바꿔서 처음부터 다시 로드한다',
+    '(같은 캐릭터라도 완전히 다른 skeleton 파일이라 스킨 합치기로는 안 된다).',
+    '',
+    '이펙트 스프라이트 ' + effects.length + '개',
+    '  매니페스트: ' + base + 'effects.json',
+    '    항목마다 id, file, frameWidth, frameHeight, frames, cols, rows, fps, category, game',
+    '  이미지: 베이스 + 항목의 file    예: ' + base + 'effects/frost_zone.webp',
+    '  로더: ' + base + 'loader.js',
+    "    const lib = await EffectLib.load('" + local + "effects.json');",
+    "    await lib.preload(['<id>']);",
+    "    const fx = lib.play('<id>', { loop: false });",
+    '    fx.update().draw(ctx, x, y, { scale: 1 });   // 매 프레임',
+    '  로더를 안 쓸 거면 시트를 cols × rows 로 잘라 fps 로 돌리면 된다.',
+    '',
+    '파티클 ' + (state.pfx ? state.pfx.ids().length : '') + '개 (어느 게임 것인지는 particles.json 맨 위 game)',
+    '  설계: ' + base + 'particles.json',
+    '  런타임: ' + base + 'particles.js',
+    "    const fx = await ParticleFX.load('" + local + "particles.json', {",
+    '      resolveTexture: (name) => imageFor(name),',
+    '    });',
+    "    const burst = fx.spawn('<id>', { x, y });",
+    '    burst.update(dt);  burst.draw(ctx);   // 매 프레임, dt 는 초',
+    '  텍스처 이름을 소문자·언더바로 바꾸면 effects.json 의 id 다 — 그 항목의 file 을 같이 복사한다.',
+    '    예: NY_glow_01 -> ny_glow_01 -> ' + base + 'singles/ny_glow_01.webp',
+    '',
+    '이 내용을 프로젝트 규칙 파일에 적어 둬 — 쓰는 도구에 맞게',
+    '(CLAUDE.md / AGENTS.md / .cursorrules / .github/copilot-instructions.md 등).',
+    '앞으로는 내가 id (+ 모습/동작 이름)만 말한다.',
+    '  예: "mage 를 전사 위치에 idle 로 띄워줘" (정지 이미지)',
+    '      "발키리 black 스킨 써줘" (variants)',
+    '      "fox_warrior_sword 의 attack 넣어줘" (진짜 Spine 동작 전환)',
+    '      "frost_zone 을 전사 공격에 써줘" (이펙트)'
+  ].join('\n');
+}
+
+els.setupBtn.addEventListener('click', function () {
+  navigator.clipboard.writeText(setupPrompt()).then(function () {
+    els.setupBtn.textContent = '복사됨 — AI 에게 붙여넣기';
+    els.setupBtn.classList.add('ok');
+    setTimeout(function () {
+      els.setupBtn.textContent = 'AI에 연결하기';
+      els.setupBtn.classList.remove('ok');
+    }, 2400);
+  });
+});
+
+/* ── 그리드 ────────────────────────────────────────────────────────── */
+
+function renderGrid() {
+  var list = filtered();
+  els.tally.innerHTML = '<b>' + list.length + '</b> / ' + ALL.length;
+  els.grid.innerHTML = '';
+  cards.forEach(function (c) { if (c.card._rec) seen.unobserve(c.card); });
+  cards = [];
+  // old cards' canvases are gone - drop their registry entries too, but
+  // keep the detail panel's entry (it isn't rebuilt when the grid is)
+  thumbSpine.registry = thumbSpine.registry.filter(function (r) { return r.key === 'detail'; });
+
+  if (state.lib.characters.length === 0) {
+    els.grid.appendChild(emptyState());
+    return;
+  }
+  if (list.length === 0) {
+    els.grid.appendChild(el('div', { class: 'nothing' }, [el('p', { text: '검색·필터에 걸리는 에셋이 없습니다.' })]));
+    return;
+  }
+
+  list.forEach(function (character) {
+    var canvas, isSpineThumb = !!character.spine && !character.spine.incomplete;
+    if (isSpineThumb) {
+      canvas = createSpineThumb(character, state.lib.baseUrl);
+    } else {
+      canvas = el('canvas', { width: String(THUMB * DPR), height: String(THUMB * DPR) });
+    }
+
+    var thumb = el('div', { class: 'thumb' }, [
+      canvas,
+      el('span', { class: 'tag', text: catLabel(character.category) })
+    ]);
+    var card = el('div', { class: 'card', 'aria-current': 'false' }, [
+      el('button', { class: 'plate-btn', type: 'button', onclick: function () { selectCharacter(character); } }, [thumb]),
+      el('div', { class: 'namerow' }, [
+        el('span', { class: 'name', text: character.id }),
+        el('button', { class: 'mini', type: 'button', title: 'id 복사', onclick: function (e) { copy(character.id, e.currentTarget); } }, [document.createTextNode('COPY')])
+      ])
+    ]);
+    card._character = character;
+    // 여러 개를 골라 한 압축으로 받는 체크 칸 (그림 누름 판 밖에 둔다 — 누르면 상세가 열리지 않게)
+    var pick = el('input', { type: 'checkbox', class: 'pick', title: '골라서 여러 개 한 번에 받기', 'aria-label': character.id + ' 고르기',
+      onchange: function () {
+        if (pick.checked) state.picked[character.id] = true; else delete state.picked[character.id];
+        renderPickBar();
+      } });
+    pick.checked = !!state.picked[character.id];
+    card.appendChild(pick);
+    els.grid.appendChild(card);
+    if (isSpineThumb) {
+      cards.push({ character: character, card: card, isSpineThumb: true });
+    } else {
+      // 카드가 이천 장 가까이라 화면에 보이는 것만 그림을 받고 그린다 (파티클은 보일 때만 시뮬레이션)
+      var rec = character.pfx
+        ? { character: character, card: card, pfx: true, ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, inst: null, visible: false }
+        : { character: character, card: card, canvas: canvas, ctx: null, clip: character.getClip(), frame: 0, elapsed: 0, visible: false, drawn: false };
+      card._rec = rec;
+      seen.observe(card);
+      cards.push(rec);
+    }
+  });
+
+  markCurrent();
+}
+
+function emptyState() {
+  return el('div', { class: 'nothing' }, [
+    el('h2', { text: '아직 등록된 캐릭터가 없습니다' }),
+    el('p', { text: '리소스가 준비되면 characters.json 에 항목을 추가하는 즉시 이 그리드에 나타납니다.' }),
+    el('p', {}, []),
+    (function () {
+      var p = el('p', {});
+      p.innerHTML = '분류는 ' + Object.keys(state.lib.categories).map(function (k) {
+        return '<code>' + k + '</code> (' + state.lib.categoryLabel(k) + ')';
+      }).join(' · ') + ' 로 이미 준비돼 있습니다.';
+      return p;
+    })(),
+    (function () {
+      var p = el('p', {});
+      p.innerHTML = '항목 스키마는 저장소 루트의 <code>CHARACTERS.md</code> 참고.';
+      return p;
+    })()
+  ]);
+}
+
+function markCurrent() {
+  cards.forEach(function (c) {
+    c.card.setAttribute('aria-current', String(state.current === c.character));
+  });
+}
+
+/* ── 재생 루프 (그리드 카드) ───────────────────────────────────────── */
+
+var lastTick = null;
+function tick(now) {
+  var dt = lastTick == null ? 0 : Math.min(now - lastTick, 60);
+  lastTick = now;
+  cards.forEach(function (c) {
+    if (!c.visible) return;
+    if (c.pfx) drawPfxCard(c, dt);
+    else if (state.playing || !c.drawn) drawCardFrame(c, state.playing ? dt : 0);
+  });
+  if (state.anim && state.playing) {
+    state.anim.update(dt);
+    drawStage();
+  }
+  requestAnimationFrame(tick);
+}
+
+function drawCardFrame(c, dt) {
+  if (!c.clip.image) return;
+  var fps = c.clip.fps || 12;
+  c.elapsed += dt;
+  var step = 1000 / fps;
+  while (c.elapsed >= step) { c.elapsed -= step; c.frame = (c.frame + 1) % c.clip.frames; }
+  var r = c.clip.frameRect(c.frame);
+  var ctx = c.ctx || (c.ctx = c.canvas.getContext('2d')), W = c.canvas.width, H = c.canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  var scale = Math.min(W / r.w, H / r.h);
+  var dw = r.w * scale, dh = r.h * scale;
+  // 작은 픽셀아트는 확대할 때 보간하면 뭉개진다 - 상세 패널처럼 최근접으로
+  ctx.imageSmoothingEnabled = !(c.character.pixelArt || c.character.category === 'pixel' || c.character.category === 'ui');
+  ctx.drawImage(c.clip.image, r.x, r.y, r.w, r.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  c.drawn = true;
+}
+
+var seen = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) {
+    var rec = e.target._rec;
+    if (!rec) return;
+    rec.visible = e.isIntersecting;
+    if (rec.visible && rec.clip) rec.clip.load();   // 그림은 처음 보일 때 받는다
+  });
+}, { rootMargin: '200px' });
+
+/* ── 파티클 (particles.json + particles.js) ───────────────────────────── */
+
+/** Unity 텍스처 이름을 effects.json 의 이미지로 바꾼다 (예: NY_glow_01 -> ny_glow_01). */
+var texCache = {};
+function resolveTexture(name) {
+  if (!name || !state.lib) return null;
+  var id = String(name).toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  if (id in texCache) return texCache[id];
+  var c;
+  try { c = state.lib.get(id); } catch (e) { texCache[id] = null; return null; }
+  var clip = c.getClip();
+  if (!clip.image) { clip.load(); return null; }   // 아직이면 다음 프레임에 다시 묻는다
+  texCache[id] = clip.image;
+  return clip.image;
+}
+
+/** 정지 상태로 만들어진 파티클은 빈 화면이 된다. 몇 프레임 미리 굴려 한 장면을 남긴다. */
+function primeIfPaused(inst) {
+  if (state.playing || !inst) return;
+  for (var i = 0; i < 30; i++) inst.update(1 / 60);
+}
+
+function spawnPfx(id, w, h) {
+  var inst = state.pfx.spawn(id, { x: w / 2, y: h * 0.55, unitScale: pfxUnitScale(id, h) });
+  primeIfPaused(inst);
+  return inst;
+}
+
+function drawPfxCard(c, dt) {
+  if (!c.inst) {
+    try { c.inst = spawnPfx(c.character.id, c.w, c.h); } catch (err) { c.visible = false; return; }
+  }
+  if (state.playing) c.inst.update(dt / 1000);
+  c.ctx.clearRect(0, 0, c.w, c.h);
+  c.inst.draw(c.ctx);
+  if (!c.inst.alive()) c.inst = null;        // 한 방짜리는 다시 튼다
+}
+
+// 파티클 설계의 크기는 Unity 월드 유닛이다. 기본 100px/유닛으로 풀면
+// 3유닛짜리 파티클이 300px 가 되어 카드 밖으로 나간다. 레시피가 차지하는
+// 반경을 읽어서 화폭에 맞는 px/유닛을 정한다.
+var pfxUnitCache = {};
+
+/** MinMaxCurve 에서 가장 큰 값. */
+function curveMax(spec, fallback) {
+  if (!spec) return fallback;
+  if (spec.v !== undefined) return spec.v;
+  if (spec.max !== undefined) return spec.max;
+  if (spec.keys && spec.keys.length) {
+    return spec.keys.reduce(function (m, k) { return Math.max(m, k[1]); }, 0);
+  }
+  return fallback;
+}
+
+/**
+ * 이 레시피의 두 가지 치수.
+ *   extent  — 원점에서 대략 몇 유닛까지 퍼지는지
+ *   biggest — 가장 큰 입자가 몇 유닛으로 그려지는지
+ */
+function pfxMeasure(spec) {
+  var extent = 0.15, biggest = 0.0001;
+  (spec.emitters || []).forEach(function (e) {
+    var size = curveMax(e.size, 1);
+    var life = curveMax(e.lifetime, 1);
+    var speed = curveMax(e.speed, 0);
+    var grow = e.sizeOverLife ? curveMax(e.sizeOverLife, 1) : 1;
+    var radius = (e.shape && e.shape.radius) || 0;
+    var drawn = size * grow;
+    // 최대 속도로 수명 내내 직진하는 입자는 드물다. 이동분은 깎아서 센다.
+    extent = Math.max(extent, radius + speed * life * 0.6 + drawn / 2);
+    biggest = Math.max(biggest, drawn);
+  });
+  return { extent: extent, biggest: biggest };
+}
+
+/**
+ * 이 레시피에 맞는 px/유닛. 퍼짐이 화폭에 들어오게 줄이되, 그렇게 줄이면
+ * 입자가 서브픽셀이 되어 사라지는 설계(먼지 같은 것)는 보이는 크기까지 키운다.
+ */
+function pfxUnitScale(id, box) {
+  var m = pfxUnitCache[id];
+  if (!m) {
+    try { m = pfxMeasure(state.pfx.get(id)); } catch (e) { m = { extent: 1, biggest: 1 }; }
+    pfxUnitCache[id] = m;
+  }
+  var fit = (box * 0.45) / m.extent;   // 퍼짐이 화폭 안에
+  var vis = 2.5 / m.biggest;           // 가장 큰 입자가 최소 2.5px
+  var ceiling = (box * 1.6) / m.extent;   // 키우더라도 이 이상은 의미 없다
+  return Math.max(0.01, Math.min(Math.max(fit, vis), ceiling));
+}
+
+/* ── 진짜 Spine 애니메이션 (스켈레톤/아틀라스가 있는 캐릭터만) ─────────
+ * WebGL 컨텍스트 하나만 계속 재사용한다 - detail 패널용, 그리드 카드용
+ * 따로 만들었더니 컨텍스트가 여러 개(≥2) 뜨는 순간 서로 검은 화면으로
+ * 깨지는 게 이 환경에서 재현됨(라이브러리가 컨텍스트 하나만 쓴다고
+ * 가정하는 듯). 그래서 모든 캐릭터(그리드 미리보기 + 상세 패널)를 이
+ * 하나의 숨겨진 캔버스에 순서대로 그린 다음, 그 결과를 각자의 진짜
+ * (보이는) 2D 캔버스로 복사해 붙이는 방식으로 통일했다.
+ * ────────────────────────────────────────────────────────────────────── */
+var spineDataCache = {}; // skeleton path -> SkeletonData (여러 캐릭터가 안전하게 공유)
+var thumbSpine = { canvas: null, app: null, registry: [] }; // registry: {key, skeleton, animationState, ctx2d}
+
+function ensureThumbSpineCanvas() {
+  if (thumbSpine.canvas) return;
+  var canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 512;
+  // Actually attached (off-screen) rather than a bare detached element -
+  // spine-webgl's own resize handling reads clientWidth/Height, which is
+  // always 0 on a detached canvas and was blanking the framebuffer.
+  canvas.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:512px;height:512px';
+  document.body.appendChild(canvas);
+  thumbSpine.canvas = canvas;
+  thumbSpine.app = new spine.SpineCanvas(canvas, {
+    app: {
+      update: function (sc, delta) {
+        thumbSpine.registry.forEach(function (r) {
+          if (state.playing) r.animationState.update(delta);
+          r.animationState.apply(r.skeleton);
+          r.skeleton.updateWorldTransform();
+        });
+      },
+      render: function (sc) {
+        // no renderer.resize() here on purpose: this canvas is never
+        // attached with real layout size in the way ResizeMode.Expand
+        // expects, so leave it at the fixed size set above.
+        var renderer = sc.renderer, gl = sc.context.gl;
+        var offset = new spine.Vector2(), size = new spine.Vector2();
+        thumbSpine.registry.forEach(function (r) {
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          // Every character has a different root/origin convention (some
+          // rigs put non-trivial offsets above the root bone), so a single
+          // fixed camera left most of them off-center or oddly scaled.
+          // Fit the camera to this skeleton's own current bounds instead,
+          // every frame, right before drawing it.
+          visibleBounds(r.skeleton, offset, size);
+          renderer.camera.position.x = offset.x + size.x / 2;
+          renderer.camera.position.y = offset.y + size.y / 2;
+          renderer.camera.viewportWidth = canvas.width;
+          renderer.camera.viewportHeight = canvas.height;
+          renderer.camera.zoom = Math.max(size.x / canvas.width, size.y / canvas.height, 0.001) * 1.2;
+          renderer.camera.update();
+          renderer.begin();
+          renderer.drawSkeleton(r.skeleton, true);
+          renderer.end();
+          // Letterbox instead of stretching to fill - the shared source
+          // canvas is square, but targets aren't all square (the detail
+          // panel's is 640x480), and drawImage happily squashes otherwise.
+          var tw = r.ctx2d.canvas.width, th = r.ctx2d.canvas.height;
+          var s = Math.min(tw / canvas.width, th / canvas.height);
+          var dw = canvas.width * s, dh = canvas.height * s;
+          r.ctx2d.clearRect(0, 0, tw, th);
+          r.ctx2d.drawImage(canvas, 0, 0, canvas.width, canvas.height, (tw - dw) / 2, (th - dh) / 2, dw, dh);
+        });
+      }
+    }
+  });
+}
+
+// getBounds() also counts fully transparent attachments (e.g. fairy rigs keep
+// hidden plant props far off to the side), which shrinks and off-centers the fit.
+function visibleBounds(skeleton, offset, size) {
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, verts = [];
+  skeleton.drawOrder.forEach(function (slot) {
+    var att = slot.getAttachment();
+    if (!att || !slot.bone.active || slot.color.a * att.color.a < 0.01) return;
+    var n;
+    if (att instanceof spine.RegionAttachment) { n = 8; att.computeWorldVertices(slot, verts, 0, 2); }
+    else if (att instanceof spine.MeshAttachment) { n = att.worldVerticesLength; att.computeWorldVertices(slot, 0, n, verts, 0, 2); }
+    else return;
+    for (var i = 0; i < n; i += 2) {
+      if (verts[i] < minX) minX = verts[i]; if (verts[i] > maxX) maxX = verts[i];
+      if (verts[i + 1] < minY) minY = verts[i + 1]; if (verts[i + 1] > maxY) maxY = verts[i + 1];
+    }
+  });
+  if (minX === Infinity) { skeleton.getBounds(offset, size, []); return; }
+  offset.set(minX, minY);
+  size.set(maxX - minX, maxY - minY);
+}
+
+function joinRelative(baseUrl, path) {
+  // baseUrl is like '../' (page-relative); manifest paths are already
+  // repo-root-relative ("characters/xxx/..."), same convention Clip uses.
+  return baseUrl + path;
+}
+
+// Loads (or reuses cached) skeleton data for spineSpec and registers a
+// live-playing instance under `key`, drawing into ctx2d every frame.
+// Replaces any existing entry with the same key first (used for the detail
+// panel, which shows one character at a time under key 'detail').
+function registerSpine(key, spineSpec, baseUrl, ctx2d) {
+  ensureThumbSpineCanvas();
+  thumbSpine.registry = thumbSpine.registry.filter(function (r) { return r.key !== key; });
+  var v = spineSpec.hash ? '?v=' + spineSpec.hash : '';
+  var skeletonUrl = joinRelative(baseUrl, spineSpec.skeleton) + v;
+  var atlasUrl = joinRelative(baseUrl, spineSpec.atlas) + v;
+  var am = thumbSpine.app.assetManager;
+
+  function add(skeletonData) {
+    var skeleton = new spine.Skeleton(skeletonData);
+    if (spineSpec.skin) {
+      var combined = new spine.Skin('combined');
+      var defSkin = skeletonData.findSkin('default');
+      var variant = skeletonData.findSkin(spineSpec.skin);
+      if (defSkin) combined.addSkin(defSkin);
+      if (variant) combined.addSkin(variant);
+      skeleton.setSkin(combined);
+    }
+    skeleton.setSlotsToSetupPose();
+    var animationState = new spine.AnimationState(new spine.AnimationStateData(skeletonData));
+    animationState.setAnimation(0, spineSpec.defaultAnimation || spineSpec.animations[0], true);
+    thumbSpine.registry.push({ key: key, skeleton: skeleton, animationState: animationState, ctx2d: ctx2d });
+  }
+
+  var isBinary = !/\.json$/i.test(spineSpec.skeleton);
+
+  if (spineDataCache[skeletonUrl]) {
+    add(spineDataCache[skeletonUrl]);
+  } else {
+    // spine-webgl resolves each atlas page (the .webp) itself, relative to
+    // atlasUrl's own directory - no hook to append ?v= to those, so only
+    // the .txt/.json/.bytes above are cache-busted. Rename the folder
+    // (e.g. add a suffix) if a page image itself needs to bust cache.
+    am.loadTextureAtlas(atlasUrl);
+    if (isBinary) am.loadBinary(skeletonUrl); else am.loadJson(skeletonUrl);
+    (function poll() {
+      if (am.isLoadingComplete()) {
+        var atlas = am.require(atlasUrl);
+        var loader = new spine.AtlasAttachmentLoader(atlas);
+        var reader = isBinary ? new spine.SkeletonBinary(loader) : new spine.SkeletonJson(loader);
+        var skeletonData = reader.readSkeletonData(am.require(skeletonUrl));
+        spineDataCache[skeletonUrl] = skeletonData;
+        add(skeletonData);
+      } else {
+        requestAnimationFrame(poll);
+      }
+    })();
+  }
+}
+
+function findSpineEntry(key) {
+  return thumbSpine.registry.filter(function (r) { return r.key === key; })[0] || null;
+}
+
+// Grid-card preview: a small 2D <canvas>, kept live by the shared renderer.
+function createSpineThumb(character, baseUrl) {
+  var canvas = el('canvas', { width: String(THUMB * DPR), height: String(THUMB * DPR) });
+  registerSpine('grid:' + character.id, character.spine, baseUrl, canvas.getContext('2d'));
+  return canvas;
+}
+
+/* ── 상세 패널 ─────────────────────────────────────────────────────── */
+
+function selectCharacter(character) {
+  state.current = character;
+  state.animName = character.defaultAnimation;
+  state.bg = 'dark';
+  state.scale = 1;
+  state.spineVariant = null;
+  markCurrent();
+  renderDetail();
+  document.getElementById('detail').classList.add('open');
+  document.getElementById('scrim').classList.add('on');
+  // fetch every clip's image now, not just the one showing - so switching
+  // tabs afterward is instant instead of a blank flash while it loads
+  if (!character.pfx) character.preload();
+}
+
+function closeDetail() {
+  els.detail.classList.remove('open');
+  els.scrim.classList.remove('on');
+  thumbSpine.registry = thumbSpine.registry.filter(function (r) { return r.key !== 'detail'; });
+}
+els.scrim.addEventListener('click', closeDetail);
+
+function renderDetail() {
+  var c = state.current;
+  var lib = state.lib;
+  var clip = c.pfx ? null : c.getClip(state.animName);
+  var isSpine = !!c.spine;
+  var stage, animTabs, skinTabs;
+  var activeSpine = c.spine;
+
+  if (c.pfx) {
+    var pfxCanvas = el('canvas', { width: '640', height: '480' });
+    var pfxCtx = pfxCanvas.getContext('2d');
+    var inst = null;
+    drawStage = function () {
+      if (!inst) { try { inst = spawnPfx(c.id, 640, 480); } catch (e) { return; } }
+      pfxCtx.clearRect(0, 0, 640, 480);
+      pfxCtx.save();
+      pfxCtx.translate(320, 240);
+      pfxCtx.scale(state.scale, state.scale);
+      pfxCtx.translate(-320, -240);
+      inst.draw(pfxCtx);
+      pfxCtx.restore();
+      if (!inst.alive()) inst = null;        // 한 방짜리는 다시 튼다
+    };
+    state.anim = { update: function (dt) { if (inst) inst.update(dt / 1000); } };
+    drawStage();
+    stage = el('div', { class: 'stage', 'data-bg': state.bg }, [pfxCanvas]);
+  } else if (isSpine) {
+    activeSpine = state.spineVariant
+      ? c.spine.variants.filter(function (v) { return v.key === state.spineVariant; })[0]
+      : c.spine;
+
+    drawStage = function () {}; // spine drives its own render loop, not the grid's tick()
+    state.anim = null;
+    var detailCanvas = el('canvas', { width: '640', height: '480' });
+    stage = el('div', { class: 'stage', 'data-bg': state.bg }, [detailCanvas]);
+    registerSpine('detail', activeSpine, lib.baseUrl, detailCanvas.getContext('2d'));
+
+    animTabs = el('div', { class: 'seg' }, activeSpine.animations.map(function (n) {
+      var btn = el('button', {
+        type: 'button', 'aria-pressed': String(n === (activeSpine.defaultAnimation || activeSpine.animations[0])),
+        onclick: function () {
+          var entry = findSpineEntry('detail');
+          if (entry) entry.animationState.setAnimation(0, n, true);
+          Array.prototype.forEach.call(animTabs.children, function (b) {
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+        }
+      }, [document.createTextNode(n)]);
+      return btn;
+    }));
+
+    if (c.spine.variants && c.spine.variants.length) {
+      var allSkins = [{ key: null, label: '기본' }].concat(c.spine.variants);
+      skinTabs = el('div', { class: 'seg' }, allSkins.map(function (v) {
+        return el('button', {
+          type: 'button', 'aria-pressed': String(state.spineVariant === v.key),
+          onclick: function () { state.spineVariant = v.key; renderDetail(); }
+        }, [document.createTextNode(v.label)]);
+      }));
+    }
+  } else {
+    var stageCanvas = el('canvas', { width: '640', height: '480' });
+    var stageCtx = stageCanvas.getContext('2d');
+
+    var frame = 0, elapsed = 0;
+    state.anim = {
+      clip: clip,
+      update: function (dt) {
+        if (!clip.image) return;
+        var fps = clip.fps || 12;
+        elapsed += dt;
+        var step = 1000 / fps;
+        while (elapsed >= step) { elapsed -= step; frame = (frame + 1) % clip.frames; }
+      }
+    };
+
+    var drawLoading = function () {
+      var W = stageCanvas.width, H = stageCanvas.height;
+      stageCtx.clearRect(0, 0, W, H);
+      stageCtx.fillStyle = '#8e92a6';
+      stageCtx.font = '14px "IBM Plex Mono", monospace';
+      stageCtx.textAlign = 'center';
+      stageCtx.fillText('불러오는 중…', W / 2, H / 2);
+    };
+    var drawStageNow = function () {
+      if (!clip.image) { drawLoading(); return; }
+      var r = clip.frameRect(frame);
+      var W = stageCanvas.width, H = stageCanvas.height;
+      stageCtx.clearRect(0, 0, W, H);
+      var scale = Math.min(W / r.w, H / r.h) * state.scale;
+      var dw = r.w * scale, dh = r.h * scale;
+      stageCtx.imageSmoothingEnabled = isEffect(c);   // 빛·연기 이펙트는 부드럽게, 캐릭터는 또렷하게
+      stageCtx.drawImage(clip.image, r.x, r.y, r.w, r.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    };
+    drawStage = drawStageNow;
+    drawLoading();
+    clip.load().then(drawStageNow);
+
+    stage = el('div', { class: 'stage', 'data-bg': state.bg }, [stageCanvas]);
+
+    var names = c.animationNames();
+    if (names.length > 1) {
+      animTabs = el('div', { class: 'seg' }, names.map(function (n) {
+        return el('button', {
+          type: 'button', 'aria-pressed': String(n === state.animName),
+          onclick: function () { state.animName = n; renderDetail(); }
+        }, [document.createTextNode(n)]);
+      }));
+    }
+  }
+
+  var bgSeg = el('div', { class: 'seg' }, ['dark', 'checker', 'light'].map(function (b) {
+    var label = b === 'dark' ? '어둠' : b === 'checker' ? '체커' : '밝음';
+    return el('button', {
+      type: 'button', 'aria-pressed': String(state.bg === b),
+      onclick: function () { state.bg = b; stage.setAttribute('data-bg', b); }
+    }, [document.createTextNode(label)]);
+  }));
+
+  var file = c.pfx ? 'particles.json' : clip.file;
+  var absUrl = SITE_BASE + file;
+  var snippet = usage(c, activeSpine);
+
+  els.detail.innerHTML = '';
+  els.detail.appendChild(el('button', { class: 'dt-close', type: 'button', 'aria-label': '닫기', onclick: closeDetail }, [document.createTextNode('×')]));
+  els.detail.appendChild(el('div', { class: 'dt-head' }, [
+    el('div', { class: 'dt-title' }, [
+      el('h2', { text: c.id }),
+    ]),
+    el('span', { class: 'badge', text: catLabel(c.category) }),
+    isSpine ? el('span', { class: 'badge', text: '진짜 애니메이션 (Spine)' }) : null
+  ].filter(Boolean)));
+  els.detail.appendChild(stage);
+  var ctl = el('div', { class: 'ctl' }, []);
+  if (skinTabs) ctl.appendChild(skinTabs);
+  if (animTabs) ctl.appendChild(animTabs);
+  ctl.appendChild(bgSeg);
+  els.detail.appendChild(ctl);
+  if (!isSpine) {
+    els.detail.appendChild(el('div', { class: 'ctl' }, [
+      el('span', { class: 'hint', text: '배율' }),
+      el('input', { type: 'range', min: '0.5', max: '4', step: '0.25', value: String(state.scale), oninput: function (e) { state.scale = parseFloat(e.target.value); } })
+    ]));
+  }
+
+  var meta = el('dl', { class: 'meta' }, []);
+  addMeta(meta, '이름', c.name);
+  addMeta(meta, '게임', gameLabel(gameOf(c)));
+  if (c.pfx) {
+    var ems = state.pfx.get(c.id).emitters || [], dur = 0, tex = {};
+    ems.forEach(function (e) {
+      dur = Math.max(dur, e.duration || 0);
+      if (e.texture) tex[e.texture] = 1;
+    });
+    addMeta(meta, '이미터', ems.length + '개');
+    addMeta(meta, '길이', dur.toFixed(2) + '초');
+    addMeta(meta, '반복', ems.some(function (e) { return e.looping; }) ? '있음' : '없음');
+    addMeta(meta, '텍스처', Object.keys(tex).join(', ') || '—');
+  } else if (isSpine) {
+    addMeta(meta, '애니메이션', '있음 (진짜 Spine 스켈레톤) — 동작 버튼을 눌러보세요');
+    addMeta(meta, '동작', activeSpine.animations.join(', '));
+    if (c.spine.variants && c.spine.variants.length) addMeta(meta, '색상/장식', '기본 + ' + c.spine.variants.length + '종 — 위 탭에서 전환');
+    if (c.spine.incomplete) addMeta(meta, '주의', c.spine.incomplete);
+    if (activeSpine.note) addMeta(meta, '메모', activeSpine.note);
+  } else {
+    var names = c.animationNames();
+    addMeta(meta, '애니메이션', hasAnimation(c) ? '있음 — 동작 탭을 선택하세요' : '없음 — 정지 이미지');
+    addMeta(meta, hasAnimation(c) ? '동작' : '모습', names.join(', '));
+    addMeta(meta, '프레임', clip.frames + '장 (' + clip.cols + '×' + clip.rows + ')');
+    addMeta(meta, '프레임 크기', clip.frameWidth + '×' + clip.frameHeight);
+    addMeta(meta, 'fps', String(clip.fps || 12));
+    if (clip.width && clip.height) addMeta(meta, '시트 크기', clip.width + '×' + clip.height);
+  }
+  if (c.source || (clip && clip.source)) addMeta(meta, '원본', c.source || clip.source);
+  els.detail.appendChild(meta);
+
+  // 받기 — '전체 받기'는 게임에 넣는 데 필요한 것 전부(압축), 옆은 지금 보고 있는 탭의 파일 하나
+  els.detail.appendChild(el('div', { class: 'dt-sec', text: '받기' }));
+  var zipBtn = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadZip(c, zipBtn); } }, [document.createTextNode('전체 받기 (ZIP)')]);
+  var dl = el('div', { class: 'acts' }, [zipBtn]);
+  if (!c.pfx) dl.appendChild(download(file, '이 그림만 (' + file.split('.').pop().toUpperCase() + ')'));
+  if (c.layout) dl.appendChild(download(c.layout, '배치표만 (JSON)'));
+  els.detail.appendChild(dl);
+  els.detail.appendChild(el('p', { class: 'hint', text: '전체 받기에는 이 에셋에 딸린 것 전부(그림 탭 전부 · Spine 스켈레톤·아틀라스 · 타일 배치표 · 파티클 텍스처)와 ' +
+    '이 에셋 하나짜리 매니페스트(' + c.id + '.json — 프레임 크기·fps), 로더, 사용법.txt 가 들어 있습니다. ' +
+    '게임 프로젝트의 assets/' + c.id + '/ 에 풀면 아래 코드가 그대로 맞습니다.' }));
+
+  var acts = el('div', { class: 'acts' }, []);
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(c.id, e.currentTarget); } }, [document.createTextNode('id 복사')]));
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(file, e.currentTarget); } }, [document.createTextNode('경로 복사')]));
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(absUrl, e.currentTarget); } }, [document.createTextNode('직링크 복사')]));
+  els.detail.appendChild(acts);
+
+  els.detail.appendChild(el('div', { class: 'dt-sec', text: '코드' }));
+  var snip = el('pre', { class: 'snip', text: snippet });
+  els.detail.appendChild(snip);
+  els.detail.appendChild(el('div', { class: 'acts' }, [
+    el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(snippet, e.currentTarget); } }, [document.createTextNode('코드 복사')])
+  ]));
+}
+
+/* ── 전체 받기 (ZIP) ─────────────────────────────────────────────────
+ * 이 에셋을 게임에 넣는 데 필요한 것을 압축 하나로: 그림(탭 전부) · Spine 스켈레톤·아틀라스·
+ * 아틀라스 그림 · 타일 배치표 · 파티클 설계와 텍스처 + 이 에셋 하나짜리 매니페스트 · 로더 · 사용법.
+ * 파일은 저장소와 같은 경로로 넣어서 매니페스트의 경로가 그대로 맞는다.
+ * ────────────────────────────────────────────────────────────────────── */
+var zipReady = null;
+function loadZip() {
+  return zipReady || (zipReady = new Promise(function (ok, fail) {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = function () { ok(window.JSZip); };
+    s.onerror = function () { zipReady = null; fail(new Error('압축 도구(JSZip)를 못 불러왔습니다 — 인터넷 연결을 확인하세요')); };
+    document.head.appendChild(s);
+  }));
+}
+
+var CLIP_KEYS = ['file', 'width', 'height', 'frameWidth', 'frameHeight', 'frames', 'cols', 'rows', 'fps'];
+function clipInfo(clip) {
+  var o = {};
+  CLIP_KEYS.forEach(function (k) { if (clip[k] != null) o[k] = clip[k]; });
+  return o;
+}
+
+/** 파티클 설계가 쓰는 텍스처 이름 -> 그림 파일 (이름을 소문자·언더바로 바꾸면 effects.json 의 id). */
+function pfxTextures(id) {
+  var out = {};
+  (state.pfx.get(id).emitters || []).forEach(function (e) {
+    if (!e.texture) return;
+    try { out[e.texture] = state.lib.get(String(e.texture).toLowerCase().replace(/[^a-z0-9]+/g, '_')).getClip().file; } catch (err) { /* 그림 없는 텍스처는 기본 원으로 그린다 */ }
+  });
+  return out;
+}
+
+/** 압축에 넣을 { 파일 경로들, 매니페스트 } */
+function bundleOf(c) {
+  if (c.pfx) {
+    var textures = pfxTextures(c.id), effects = {};
+    effects[c.id] = state.pfx.get(c.id);
+    return { files: ['particles.js'].concat(Object.keys(textures).map(function (k) { return textures[k]; })),
+             manifest: { version: 1, game: c.game, textures: textures, effects: effects } };
+  }
+  var files = [isEffect(c) ? 'loader.js' : 'character-loader.js'];
+  var entry;
+  if (isEffect(c)) {   // EffectLib 은 납작한 항목을 읽는다
+    entry = Object.assign({ id: c.id, category: c.category, game: c.game }, clipInfo(c.getClip()));
+    files.push(entry.file);
+  } else {
+    entry = { id: c.id, name: c.name, category: c.category, game: c.game, defaultAnimation: c.defaultAnimation, animations: {} };
+    if (c.pixelArt) entry.pixelArt = true;
+    c.animationNames().forEach(function (n) { entry.animations[n] = clipInfo(c.getClip(n)); files.push(c.getClip(n).file); });
+    if (c.layout) { entry.layout = c.layout; files.push(c.layout); }
+    if (c.spine) {
+      entry.spine = c.spine;
+      [c.spine].concat(c.spine.variants || []).forEach(function (s) { files.push(s.skeleton, s.atlas); });
+    }
+    if (c.note) entry.note = c.note;
+  }
+  var manifest = { version: 1, defaultFps: 12, games: {}, categories: {}, assets: [entry] };
+  manifest.games[c.game] = gameLabel(c.game);
+  manifest.categories[c.category] = catLabel(c.category);
+  return { files: files, manifest: manifest };
+}
+
+/** 저장소 파일들 + 글 파일들({압축 안 경로: 내용})을 압축 하나로 묶어 내려받게 한다. */
+function saveZip(paths, texts, name, btn) {
+  var label = btn.textContent;
+  btn.textContent = '묶는 중…';
+  btn.disabled = true;
+  var files = paths.slice();
+  loadZip().then(function (JSZip) {
+    var zip = new JSZip();
+    var atlases = files.filter(function (f) { return /atlas\.txt$|\.atlas$/i.test(f); });
+    // Spine 아틀라스는 안에 적힌 그림(같은 폴더)도 있어야 한다
+    return Promise.all(atlases.map(function (a) {
+      return fetch('./' + a).then(function (r) { return r.text(); }).then(function (t) {
+        t.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(function (l) { return /\.(png|webp|jpe?g)$/i.test(l); })
+          .forEach(function (page) { files.push(a.replace(/[^/]*$/, '') + page); });
+      });
+    })).then(function () {
+      var unique = files.filter(function (f, i, all) { return all.indexOf(f) === i; }), done = 0;
+      return Promise.all(unique.map(function (f) {
+        return fetch('./' + f).then(function (r) {
+          if (!r.ok) throw new Error(f + ' -> HTTP ' + r.status);
+          return r.blob();
+        }).then(function (blob) {
+          zip.file(f, blob);
+          btn.textContent = '묶는 중… ' + (++done) + '/' + unique.length;
+        });
+      }));
+    }).then(function () {
+      Object.keys(texts).forEach(function (k) { zip.file(k, texts[k]); });
+      return zip.generateAsync({ type: 'blob' });
+    });
+  }).then(function (blob) {
+    var a = el('a', { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }).catch(function (err) {
+    alert('압축을 만들지 못했습니다: ' + (err && err.message || err));
+  }).then(function () {
+    btn.textContent = label;
+    btn.disabled = false;
+  });
+}
+
+function downloadZip(c, btn) {
+  var b = bundleOf(c), texts = {};
+  texts[c.id + '.json'] = JSON.stringify(b.manifest, null, 2);
+  texts['사용법.txt'] = [
+    c.id + ' — ' + c.name + ' (' + gameLabel(gameOf(c)) + ' · ' + catLabel(c.category) + ')',
+    '이 압축을 게임 프로젝트의 assets/' + c.id + '/ 에 풀면 아래 코드가 그대로 맞는다.',
+    c.id + '.json 이 이 에셋 하나짜리 매니페스트다 (파일 경로 · 프레임 크기 · fps).',
+    '',
+    usage(c, c.spine)
+  ].join('\n');
+  saveZip(b.files, texts, c.id + '.zip', btn);
+}
+
+/**
+ * 고른 것 여러 개를 한 압축으로 — 라이브러리와 같은 경로에 같은 이름의 매니페스트
+ * (characters.json · effects.json · particles.json, 고른 것만 들어 있다). AI 연결 글의 assets/library/ 와 같은 모양.
+ */
+function downloadPicked(btn) {
+  var list = ALL.filter(function (c) { return state.picked[c.id]; });
+  var chars = { version: 1, defaultFps: 12, games: {}, categories: {}, assets: [] };
+  var fx = { version: 1, defaultFps: 12, games: {}, categories: {}, assets: [] };
+  var pfx = { version: 1, textures: {}, effects: {} };
+  var files = [];
+  list.forEach(function (c) {
+    var b = bundleOf(c);
+    files = files.concat(b.files);
+    if (c.pfx) {
+      pfx.game = c.game;
+      Object.assign(pfx.textures, b.manifest.textures);
+      Object.assign(pfx.effects, b.manifest.effects);
+      return;
+    }
+    var m = isEffect(c) ? fx : chars;
+    m.assets.push(b.manifest.assets[0]);
+    Object.assign(m.games, b.manifest.games);
+    Object.assign(m.categories, b.manifest.categories);
+  });
+  var texts = {}, dir = 'assets/library/', how = [];
+  if (chars.assets.length) {
+    texts['characters.json'] = JSON.stringify(chars, null, 2);
+    how.push('캐릭터·아이콘·UI·배경 ' + chars.assets.length + '개 — characters.json',
+      '  <' + 'script src="' + dir + 'character-loader.js"><' + '/script>',
+      "  const lib = await CharacterLib.load('" + dir + "characters.json');",
+      "  const anim = lib.play('<id>', '<탭 이름>', { loop: true });   // 매 프레임 anim.update(); anim.draw(ctx, x, y);",
+      '  spine 이 있는 항목은 skeleton·atlas 를 spine-webgl 4.1 로 읽는다 (아틀라스 그림은 같은 폴더).',
+      '  layout 이 있는 타일셋은 그 배치표 JSON 에 칸마다 네 모서리(NE·NW·SE·SW)가 적혀 있다.',
+      '  pixelArt: true 면 확대할 때 보간을 끈다.', '');
+  }
+  if (fx.assets.length) {
+    texts['effects.json'] = JSON.stringify(fx, null, 2);
+    how.push('이펙트 ' + fx.assets.length + '개 — effects.json',
+      '  <' + 'script src="' + dir + 'loader.js"><' + '/script>',
+      "  const lib = await EffectLib.load('" + dir + "effects.json');",
+      "  const fx = lib.play('<id>', { loop: true });   // 매 프레임 fx.update().draw(ctx, x, y);", '');
+  }
+  var pfxIds = Object.keys(pfx.effects);
+  if (pfxIds.length) {
+    texts['particles.json'] = JSON.stringify(pfx, null, 2);
+    how.push('파티클 ' + pfxIds.length + '개 — particles.json',
+      '  <' + 'script src="' + dir + 'particles.js"><' + '/script>',
+      '  particles.json 의 textures(이름 -> 파일)로 그림을 먼저 읽고',
+      "  ParticleFX.load('" + dir + "particles.json', { resolveTexture: (name) => images[name] }) 후 fx.spawn('<id>', { x, y }).", '');
+  }
+  texts['사용법.txt'] = [
+    '에셋 ' + list.length + '개: ' + list.map(function (c) { return c.id; }).join(', '),
+    '',
+    '이 압축을 게임 프로젝트의 ' + dir + ' 에 풀면 아래 경로가 그대로 맞는다.',
+    '매니페스트(파일 경로 · 프레임 크기 · fps)는 고른 것만 들어 있다.',
+    ''
+  ].concat(how).join('\n');
+  saveZip(files, texts, '에셋 ' + list.length + '개.zip', btn);
+}
+
+function renderPickBar() {
+  var ids = Object.keys(state.picked);
+  els.pickBar.hidden = !ids.length;
+  els.pickBar.innerHTML = '';
+  if (ids.length) {
+    var get = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadPicked(get); } }, [document.createTextNode('고른 것 받기 (ZIP)')]);
+    els.pickBar.appendChild(el('span', {}, [el('b', { text: String(ids.length) }), document.createTextNode('개 고름')]));
+    els.pickBar.appendChild(get);
+    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', title: 'AI 에게 "이것들 넣어줘" 할 때 붙여넣기', onclick: function (e) { copy(ids.join(', '), e.currentTarget); } }, [document.createTextNode('id 복사')]));
+    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', onclick: function () { state.picked = {}; renderPickBar(); } }, [document.createTextNode('고른 것 지우기')]));
+  }
+  cards.forEach(function (c) {
+    var p = c.card.querySelector('.pick');
+    if (p) p.checked = !!state.picked[c.character.id];
+  });
+  syncBarHeight();
+}
+
+els.pickAllBtn.addEventListener('click', function () {
+  filtered().forEach(function (c) { state.picked[c.id] = true; });
+  renderPickBar();
+});
+
+/** 상세 창 '코드' 와 압축 안 사용법.txt — 압축을 게임 프로젝트의 assets/<id>/ 에 풀었다고 보고 쓴다. */
+function usage(c, activeSpine) {
+  var dir = 'assets/' + c.id + '/';
+  if (c.pfx) return [
+    '<' + 'script src="' + dir + 'particles.js"><' + '/script>',
+    '',
+    '// 텍스처 그림을 먼저 읽는다 (' + c.id + '.json 의 textures: 이름 -> 파일)',
+    "const spec = await (await fetch('" + dir + c.id + ".json')).json();",
+    'const images = {};',
+    'await Promise.all(Object.entries(spec.textures).map(([name, file]) => new Promise((ok) => {',
+    "  const img = new Image(); img.onload = img.onerror = ok; img.src = '" + dir + "' + file; images[name] = img;",
+    '})));',
+    "const fx = await ParticleFX.load('" + dir + c.id + ".json', { resolveTexture: (name) => images[name] });",
+    "const burst = fx.spawn('" + c.id + "', { x: 200, y: 300 });",
+    '',
+    '// 매 프레임 (dt 는 초)',
+    'burst.update(dt);',
+    'burst.draw(ctx);'
+  ].join('\n');
+  if (isEffect(c)) {
+    var clip = c.getClip();
+    return [
+      '<' + 'script src="' + dir + 'loader.js"><' + '/script>',
+      '',
+      "const lib = await EffectLib.load('" + dir + c.id + ".json');",
+      "await lib.preload(['" + c.id + "']);"
+    ].concat(clip.frames > 1 ? [
+      "const fx = lib.play('" + c.id + "', { loop: true });",
+      '',
+      '// 매 프레임',
+      'fx.update().draw(ctx, x, y, { scale: 1 });'
+    ] : [
+      '',
+      '// 단일 이미지 — 크기·회전·투명도는 직접 준다',
+      "const t = lib.get('" + c.id + "');",
+      'ctx.drawImage(t.image, x, y);'
+    ]).join('\n');
+  }
+  if (activeSpine) return [
+    '// 진짜 Spine 스켈레톤 — spine-webgl 4.1 런타임 (3.8 아님)',
+    '<' + 'script src="https://unpkg.com/@esotericsoftware/spine-webgl@4.1.24/dist/iife/spine-webgl.js"><' + '/script>',
+    '',
+    "const am = new spine.AssetManager(gl, '" + dir + "');",
+    "am.loadTextureAtlas('" + activeSpine.atlas + "');   // 아틀라스 그림은 같은 폴더에 들어 있다",
+    (/\.json$/i.test(activeSpine.skeleton)
+      ? "am.loadJson('" + activeSpine.skeleton + "');"
+      : "am.loadBinary('" + activeSpine.skeleton + "');  // .skel 바이너리"),
+    '// 로드 끝나면 SkeletonJson/SkeletonBinary 로 읽어 Skeleton·AnimationState 를 만든다' + (activeSpine.skin ? " (skin: default + '" + activeSpine.skin + "')" : ''),
+    '// 동작: ' + activeSpine.animations.join(', '),
+    '// Phaser 3 는 Spine 플러그인으로 같은 skeleton·atlas 를 읽는다.'
+  ].join('\n');
+  var tab = state.current === c ? state.animName : c.defaultAnimation;
+  return [
+    '<' + 'script src="' + dir + 'character-loader.js"><' + '/script>',
+    '',
+    "const lib = await CharacterLib.load('" + dir + c.id + ".json');",
+    "const anim = lib.play('" + c.id + "'" + (tab === c.defaultAnimation ? '' : ", '" + tab + "'") + ', { loop: true });',
+    'anim.update();   // 매 프레임',
+    'anim.draw(ctx, x, y);   // x/y = 가운데',
+    '',
+    '// Phaser 3: 탭마다 가로 한 줄 시트 — ' + c.id + '.json 의 file · frameWidth · frameHeight · frames · fps',
+    "// this.load.spritesheet(key, '" + dir + "' + clip.file, { frameWidth: clip.frameWidth, frameHeight: clip.frameHeight });"
+  ].concat(c.pixelArt ? ['// 픽셀아트 — 확대할 때 보간을 끈다 (ctx.imageSmoothingEnabled = false, Phaser config pixelArt: true)'] : [])
+   .concat(c.layout ? ['// 타일셋 배치표: ' + c.layout + ' — 칸마다 x, y 와 네 모서리(NE·NW·SE·SW)가 lower/upper 중 무엇인지'] : [])
+   .join('\n');
+}
+
+function download(path, label, primary) {
+  return el('a', { class: 'btn' + (primary ? ' primary' : ''), href: './' + path, download: path.split('/').pop() }, [document.createTextNode(label)]);
+}
+
+function addMeta(dl, label, value) {
+  dl.appendChild(el('dt', { text: label }));
+  dl.appendChild(el('dd', { text: value }));
+}
+
+var drawStage = function () {}; // reassigned per selectCharacter → renderDetail
+
+})();
+</script>
+</body>
+</html>
