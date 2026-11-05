@@ -1,10 +1,10 @@
 # Spine: 동작·스킨·별도 variant
 
-진입: 항목에 spine이 있고 골격 애니메이션이 필요할 때, 또는 Spine 미리보기 수정. 일반 정지/프레임 클립은 [게임 연동](integration.md).
+진입: 항목에 spine이 있고 골격 애니메이션이 필요할 때, 또는 Spine 미리보기 수정. 일반 정지/프레임 클립도 함께 사용할 때만 [게임 연동](integration.md)을 추가로 읽는다. Spine의 파일·동작·시간 단위는 이 문서로 확인할 수 있다.
 
 ## 정확한 데이터 선택
 
-1. [에셋 찾기](find-assets.md)의 단일 항목 질의로 spine만 확인한다.
+1. ID를 모를 때만 [에셋 찾기](find-assets.md)로 간다. ID를 알면 아래 질의의 ID를 바꿔 해당 spine 정보만 추출한다.
 2. 기본은 `entry.spine`, 별도 모습은 `entry.spine.variants.find(v => v.key === key)`를 선택한다.
 3. 선택한 객체의 skeleton/atlas/skin/defaultAnimation/animations를 함께 사용한다. 기본 동작 목록이 variant에도 같다고 가정하지 않는다.
 

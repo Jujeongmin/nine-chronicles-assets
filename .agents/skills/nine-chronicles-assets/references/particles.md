@@ -54,12 +54,15 @@ inst.draw(ctx);
 
 이미지를 찾으면 **시트 전체**를 사용한다. 텍스처가 프레임 시트라도 이 런타임은 프레임을 잘라 진행시키지 않는다. 의도와 다르면 텍스처 해석/렌더링 변경 과제로 별도 판단한다.
 
-이 문서와 필요한 함수 확인만으로 누락 텍스처 조사와 재생 API 확인을 마칠 수 있다. ZIP 파일 집합이 필요할 때만 번들 문서를 추가로 읽는다.
+이 문서와 필요한 함수 확인만으로 누락 텍스처 조사와 재생 API 확인을 마칠 수 있다. ZIP 파일 집합이 필요할 때만 번들 문서를 추가로 읽는다. 스프라이트 로더도 함께 사용할 때만 [게임 연동](integration.md)을 읽는다.
+
+## ParticleFX 공용 렌더링
+
+`isAdditive`: blend가 alpha면 source-over, additive면 lighter, 그 외 dstBlend가 10일 때만 alpha. tinted는 색상별 캔버스를 캐시한다. 원본과 다른 표현을 조사할 때 이 함수들과 curve/shape 지원부터 확인한다. 이 함수들은 `particles.js`에 있으며 소비 게임에도 적용된다.
 
 ## 뷰어에서만 적용되는 처리
 
 `resolveTexture`가 합친 CharacterLib에서 ID를 찾고 clip.load로 이미지를 받는다. `pfxMeasure`/`pfxUnitScale`은 레시피의 크기와 이동을 추정해 카드에 맞춘다. `spawnPfx`, `primeIfPaused`, `drawPfxCard`, `renderDetail`이 재생/정지와 단발 효과 재생성을 담당한다. 이 자동 맞춤은 ParticleFX 자체 API의 기본 동작이 아니다.
 
-`isAdditive`: blend가 alpha면 source-over, additive면 lighter, 그 외 dstBlend가 10일 때만 alpha. tinted는 색상별 캔버스를 캐시한다. 원본과 다른 표현을 조사할 때 이 함수들과 curve/shape 지원부터 확인한다.
 
 기준 시점 미연결 7종: NY_buff_plus_dispel, NY_buff_hp, NY_boss, NY_smoke_01, NY_feather_02.png, NY_glow_wind, NY_UI_icon_02. 12개 효과에 걸쳐 있으나 현재 상태는 [검증](validation.md)으로 다시 계산한다. 이름이나 확장자만 보고 대체 텍스처를 확정하지 않는다.

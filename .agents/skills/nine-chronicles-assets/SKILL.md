@@ -20,7 +20,7 @@ description: 나인 크로니클의 이미지·Spine·파티클 에셋과 ZIP �
 | 요청 | 다음 문서 | 여기서 찾는 것 |
 |---|---|---|
 | 에셋 이름/ID/종류/동작 찾기 | [에셋 찾기](references/find-assets.md) | 작은 검색 결과 → 단일 항목 → 파일 |
-| 내 게임에서 그림·애니메이션 사용 | [게임 연동](references/integration.md) | 로더 선택, 시간 단위, Spine/파티클 분기 |
+| 내 게임에서 그림·애니메이션 사용 | [게임 연동](references/integration.md) | 스프라이트 로더 선택과 소비 프로젝트 연결 |
 | 검색·분류·미리보기·다운로드 UI 수정 | [뷰어](references/viewer.md) | 기능별 함수, 상태와 렌더링 소유권 |
 | 실행 오류, 에셋 추가·교체, 정합성 검사 | [유지보수](references/maintenance.md) | 실행법 → 스키마/검증/갱신 절차 |
 

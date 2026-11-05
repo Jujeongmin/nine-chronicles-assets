@@ -18,7 +18,7 @@ rg -n 'function (filtered|buildChips|renderGrid|renderDetail|saveZip)' index.htm
 | 파티클 크기/안 보임 | `resolveTexture`, `pfxUnitScale`, `drawPfxCard` | [파티클](particles.md) |
 | 상세 열기/닫기/탭 | `selectCharacter`, `closeDetail`, `renderDetail` | 필요 시 Spine/파티클 |
 | 선택 ZIP/단일 ZIP/복사 코드 | `state.picked`, `bundleOf`, `downloadPicked`, `usage` | [번들](bundles.md) |
-| AI에 연결하기 | `setupPrompt`, `SITE_BASE`, `setupBtn` | [게임 연동](integration.md) |
+| AI에 연결하기 | `setupPrompt`, `SITE_BASE`, `setupBtn` | [번들](bundles.md) |
 | 모바일/상단 바 | CSS `@media (max-width:980px)`, `syncBarHeight` | 아래 레이아웃 |
 
 ## 필터 계약
