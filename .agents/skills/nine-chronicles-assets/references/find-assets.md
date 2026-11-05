@@ -34,7 +34,7 @@ PY
 
 ## 2. 정확히 한 항목 읽기
 
-후보 결과의 filename/id를 그대로 사용한다. `metadata variant` 결과의 id 열은 **부모 효과 키**다. variants 내부 ID는 별도 재생 가능한 효과를 뜻하지 않으므로 그 이름으로 spawn하지 않는다. ID는 대소문자를 보존한다. 특히 파티클 키는 한글·대문자가 섞여 있다.
+후보 결과의 filename/id를 그대로 사용한다. `metadata variant` 결과의 id 열은 **부모 효과 키**다. 최상위 effects 키에 없는 variant ID는 spawn하지 않는다. 같은 이름의 최상위 키가 있으면 그 키로 재생한다. ID는 대소문자를 보존한다. 특히 파티클 키는 한글·대문자가 섞여 있다.
 
 ```bash
 python3 - <<'PY'

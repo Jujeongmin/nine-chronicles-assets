@@ -24,7 +24,9 @@
 
 ```js
 const chars = await CharacterLib.load('assets/library/characters.json');
-// icons까지 필요할 때: load(['assets/library/characters.json', 'assets/library/icons.json'])
+// 저장소의 원본 매니페스트를 복사한 경우만 icons.json도 함께 load한다.
+// 선택 ZIP은 아이콘도 characters.json에 포함하므로 위 한 파일만 load한다.
+// 원본 복사 예: load(['assets/library/characters.json', 'assets/library/icons.json'])
 await chars.preload(['mage']);
 const still = chars.play('mage', 'expr_attack'); // 정지 표정, Spine Attack 아님
 still.update(dtMs).draw(ctx, x, y, {scale: 1, flipX: false});
