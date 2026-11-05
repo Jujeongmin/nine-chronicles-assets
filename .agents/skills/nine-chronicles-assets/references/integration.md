@@ -1,21 +1,21 @@
-# 게임 연동
+# Game Integration
 
-진입: 에셋을 사용하려는 게임 프로젝트에 붙일 때. ID가 불명확하면 먼저 [에셋 찾기](find-assets.md). 다운로드 파일 구성은 [번들](bundles.md).
+Use this guide to integrate assets into the consuming game project. If the ID is unclear, start with [Find assets](find-assets.md). For downloaded file sets, see [Bundles](bundles.md).
 
-## 렌더러 선택
+## Choose a renderer
 
-| 필요한 표현 | 선택 | 다음 읽기 |
+| Required representation | Choice | Next reading |
 |---|---|---|
-| 캐릭터/아이콘의 정지 모습 또는 프레임 시트 | `CharacterLib` | 아래 코드 |
-| effects.json의 이미지/프레임 시트 | `EffectLib` | 아래 코드 |
-| 캐릭터의 골격 동작, 별도 색상 variant | Spine 런타임 | [Spine](spine.md) |
-| particles.json의 이미터 시뮬레이션 | `ParticleFX` | [파티클](particles.md) |
+| Character/icon still image or frame sheet | `CharacterLib` | Code below |
+| Image/frame sheet from effects.json | `EffectLib` | Code below |
+| Character skeletal motion or separate color variant | Spine runtime | [Spine](spine.md) |
+| Emitter simulation from particles.json | `ParticleFX` | [Particles](particles.md) |
 
-`CharacterLib.play()`는 `spine` 메타데이터를 자동 재생하지 않는다. 같은 캐릭터에 정지 클립과 Spine이 함께 있어도 필요한 표현에 맞게 선택한다. 정지 표정 탭이 많다고 프레임 애니메이션이 있는 것은 아니다.
+`CharacterLib.play()` does not automatically play `spine` metadata. When a character has both still clips and Spine data, choose the representation needed. Many facial-expression tabs do not imply frame animation.
 
-## 스프라이트 API
+## Sprite API
 
-소비 프로젝트에서 매니페스트 옆에 저장소 상대경로를 유지해 파일을 복사한다. 전체 복제가 필요하지 않다면 선택 ZIP을 쓴다. 런타임은 브라우저 전역 또는 CommonJS export를 제공하지만 이미지 로딩과 그리기는 브라우저 환경이 필요하다.
+**Download and copy the required assets, manifests, and loaders into the game project. Do not point the implementation at the library's current hosted URLs, including `github.io`.** Direct cross-origin URLs can cause CORS failures when fetching or rendering assets. Preserve repository-relative paths beside the manifests and serve the files from the game's own origin. Use a selection ZIP when a full copy is unnecessary. The runtimes expose browser globals or CommonJS exports, but image loading and drawing require a browser environment.
 
 ```html
 <script src="assets/library/character-loader.js"></script>
@@ -24,11 +24,11 @@
 
 ```js
 const chars = await CharacterLib.load('assets/library/characters.json');
-// 저장소의 원본 매니페스트를 복사한 경우만 icons.json도 함께 load한다.
-// 선택 ZIP은 아이콘도 characters.json에 포함하므로 위 한 파일만 load한다.
-// 원본 복사 예: load(['assets/library/characters.json', 'assets/library/icons.json'])
+// Load icons.json as well only when copying the original repository manifests.
+// A selection ZIP includes icons in characters.json, so load only the file above.
+// Example for copied original manifests: load(['assets/library/characters.json', 'assets/library/icons.json'])
 await chars.preload(['mage']);
-const still = chars.play('mage', 'expr_attack'); // 정지 표정, Spine Attack 아님
+const still = chars.play('mage', 'expr_attack'); // Still expression, not the Spine Attack motion
 still.update(dtMs).draw(ctx, x, y, {scale: 1, flipX: false});
 
 const effects = await EffectLib.load('assets/library/effects.json');
@@ -37,19 +37,19 @@ const effect = effects.play('fire_aura', {loop: false, onComplete: () => {}});
 effect.update(dtMs).draw(ctx, x, y, {scale: 1});
 ```
 
-- `Animation.update(dtMs)`는 **밀리초**. 인자를 생략하면 내부 시계로 진행한다. `draw()`는 시간을 진행시키지 않는다.
-- 그리기 좌표는 프레임 중심. 공통 옵션은 scale/rotation/alpha/blend, flipX는 CharacterLib만 제공한다.
-- `play()`는 Promise가 아닌 Animation을 즉시 반환한다. 이미지 준비를 기다리려면 먼저 `preload()` 또는 Clip/Asset의 `load()`를 await한다.
-- `load()`는 매니페스트를 `cache: 'no-cache'`로 가져오며, 이미지 URL은 hash가 있을 때 `?v=hash`를 붙인다.
-- 여러 매니페스트를 합칠 때 기본 baseUrl은 **첫 URL의 디렉터리**다. 서로 다른 디렉터리의 매니페스트를 자동으로 각각 해석하지 않는다.
-- 프레임 사각형은 `cols` 기반 행 우선 순서. 가로 한 줄이라고 가정하지 않는다. 자세한 필드는 [스키마](manifest-schema.md).
+- `Animation.update(dtMs)` takes **milliseconds**. Without an argument, it advances using its internal clock. `draw()` does not advance time.
+- Drawing coordinates specify the frame center. Shared options are scale/rotation/alpha/blend; only CharacterLib provides flipX.
+- `play()` immediately returns an Animation, not a Promise. To wait for images, first await `preload()` or the Clip/Asset's `load()`.
+- `load()` fetches the manifest with `cache: 'no-cache'`; image URLs receive `?v=hash` when a hash exists.
+- When merging manifests, the default baseUrl is **the first URL's directory**. Manifests from different directories are not automatically resolved against their own directories.
+- Frame rectangles use row-major order based on `cols`. Do not assume one horizontal row. See [Schema](manifest-schema.md) for field details.
 
-## 프레임워크 어댑터를 쓸 때만
+## Only when using framework adapters
 
-소스 anchor: 두 로더의 `registerPhaser`, `toPixi`.
+Source anchors: `registerPhaser` and `toPixi` in both loaders.
 
-- Phaser: scene의 preload에서 `lib.registerPhaser(scene, ids)`. 로딩 complete에서 애니메이션 생성. Character 키는 `id:clipName`, Effect 키는 `id`. 어댑터가 만드는 repeat는 -1이다.
-- Pixi: `lib.toPixi(PIXI, id, clipName)` (Effect에는 clipName 없음). v7 경로는 즉시 AnimatedSprite, v8 경로는 Promise를 반환한다. 반환 뒤 소비 프로젝트에서 재생 시작/루프를 설정한다.
-- 위 설명은 이 저장소 어댑터의 구현 계약이다. 대상 게임의 실제 Phaser/Pixi 버전 호환성은 별도 확인한다.
+- Phaser: call `lib.registerPhaser(scene, ids)` during scene preload. Animations are created on loading complete. Character keys are `id:clipName`; Effect keys are `id`. The adapter sets repeat to -1.
+- Pixi: use `lib.toPixi(PIXI, id, clipName)` (no clipName for Effect). The v7 path immediately returns an AnimatedSprite; the v8 path returns a Promise. Configure playback and looping in the consuming project after receiving it.
+- These are the implementation contracts of this repository's adapters. Check compatibility with the game's actual Phaser/Pixi versions separately.
 
-이제 선택한 로더와 데이터의 해당 부분만 확인하면 된다. 뷰어 수정이 없다면 index.html 전체를 읽지 않는다.
+Inspect only the relevant parts of the selected loader and data from here. Do not read all of index.html unless modifying the viewer.

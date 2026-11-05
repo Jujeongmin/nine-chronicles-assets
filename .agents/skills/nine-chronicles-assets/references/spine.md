@@ -1,18 +1,18 @@
-# Spine: 동작·스킨·별도 variant
+# Spine: Motions, Skins, and Separate Variants
 
-진입: 항목에 spine이 있고 골격 애니메이션이 필요할 때, 또는 Spine 미리보기 수정. 일반 정지/프레임 클립도 함께 사용할 때만 [게임 연동](integration.md)을 추가로 읽는다. Spine의 파일·동작·시간 단위는 이 문서로 확인할 수 있다.
+Use this guide when an entry has spine data and skeletal animation is needed, or when modifying Spine previews. Read [Integration](integration.md) additionally only when also using ordinary still/frame clips. This document covers Spine files, motions, and time units.
 
-## 정확한 데이터 선택
+## Select the exact data
 
-1. ID를 모를 때만 [에셋 찾기](find-assets.md)로 간다. ID를 알면 아래 질의의 ID를 바꿔 해당 spine 정보만 추출한다.
-2. 기본은 `entry.spine`, 별도 모습은 `entry.spine.variants.find(v => v.key === key)`를 선택한다.
-3. 선택한 객체의 skeleton/atlas/skin/defaultAnimation/animations를 함께 사용한다. 기본 동작 목록이 variant에도 같다고 가정하지 않는다.
+1. Go to [Find assets](find-assets.md) only if the ID is unknown. Otherwise, replace the ID in the query below and extract only the relevant spine information.
+2. Select `entry.spine` for the base appearance, or `entry.spine.variants.find(v => v.key === key)` for a separate appearance.
+3. Use skeleton/atlas/skin/defaultAnimation/animations from the selected object together. Do not assume a variant has the same motions as the base.
 
-`skin`은 같은 skeleton 내부의 스킨명이다. `variants`는 key/label과 **자체 skeleton/atlas**를 가진다. flat 클립의 `black` 이름과 Spine variant의 `black`은 별개 표현이다.
+`skin` names a skin within the same skeleton. Each variant has a key/label and **its own skeleton/atlas**. A flat clip named `black` and a Spine variant named `black` are separate representations.
 
-## 파일을 찾는 순서
+## Resolve files in order
 
-skeleton, atlas 두 경로 → **atlas 내용에 적힌 모든 이미지 페이지**. 페이지 경로는 atlas 디렉터리 기준이다. `atlas.webp` 한 장이라고 추측하지 않는다. 아래는 이 저장소 atlas 형식에서 페이지를 작게 추출하는 예다.
+Start with skeleton and atlas paths, then resolve **every image page listed inside the atlas**. Page paths are relative to the atlas directory. Do not assume a single `atlas.webp`. The following query extracts a small page list for this repository's atlas format.
 
 ```bash
 python3 - <<'PY'
@@ -29,24 +29,24 @@ print('motions:', s['animations'], 'skin:', s.get('skin'))
 PY
 ```
 
-## 런타임 연결과 보존할 동작
+## Runtime integration and behavior to preserve
 
-현재 뷰어는 `@esotericsoftware/spine-webgl@4.1.24`를 CDN에서 로드한다. 스켈레톤 확장자가 `.json`이면 `loadJson`/`SkeletonJson`, 그 밖의 `.skel.bytes` 등은 `loadBinary`/`SkeletonBinary` 경로다. JSON 파일 내부를 대량 출력하지 말고 필요하면 `skeleton.spine`, `animations` 키, `skins` 이름만 파싱한다.
+The current viewer loads `@esotericsoftware/spine-webgl@4.1.24` from a CDN. Skeletons ending in `.json` use `loadJson`/`SkeletonJson`; other extensions, such as `.skel.bytes`, use `loadBinary`/`SkeletonBinary`. Avoid dumping skeleton JSON; parse only `skeleton.spine`, `animations` keys, and `skins` names when needed.
 
-`index.html`의 `registerSpine`가 구현 기준이다:
+Use `registerSpine` in `index.html` as the implementation reference:
 
-1. AssetManager에 atlas와 skeleton을 로딩하고 완료를 기다린다.
-2. AtlasAttachmentLoader → SkeletonJson 또는 SkeletonBinary → SkeletonData → Skeleton을 생성한다.
-3. skin이 있으면 존재하는 `default`와 지정 skin을 새 Skin에 `addSkin`으로 합친다. `setSlotsToSetupPose()`를 호출한다.
-4. AnimationState를 만들고 정확한 이름으로 `setAnimation(0, name, loop)`한다. 이후 동작 변경에는 state를 재사용한다.
-5. 매 프레임 `animationState.update(dtSeconds)`, `apply`, `skeleton.updateWorldTransform()` 후 그린다. **초 단위**다.
+1. Load atlas and skeleton through AssetManager and wait for completion.
+2. Create AtlasAttachmentLoader → SkeletonJson or SkeletonBinary → SkeletonData → Skeleton.
+3. If skin is specified, combine the existing `default` and specified skin into a new Skin with `addSkin`. Call `setSlotsToSetupPose()`.
+4. Create AnimationState and call `setAnimation(0, name, loop)` with the exact name. Reuse the state for later motion changes.
+5. Each frame, call `animationState.update(dtSeconds)`, `apply`, and `skeleton.updateWorldTransform()`, then draw. Time is in **seconds**.
 
-뷰어 변경일 때만 함께 볼 함수: `ensureThumbSpineCanvas`, `visibleBounds`, `createSpineThumb`, `renderDetail`.
+Additional functions to inspect only for viewer changes: `ensureThumbSpineCanvas`, `visibleBounds`, `createSpineThumb`, `renderDetail`.
 
-- 미리보기와 상세가 한 offscreen 512×512 WebGL 캔버스를 공유하고, 각 2D 캔버스로 결과를 복사한다. DOM에서 분리하면 clientWidth/Height가 0이 될 수 있어 화면 밖에 붙여 둔다.
-- bounds는 투명 attachment를 제외하여 계산하고 종횡비를 유지한다.
-- grid를 다시 만들 때 registry에서 `detail`만 남기고, 상세 닫을 때 detail 등록을 제거한다.
-- 일반 카드의 IntersectionObserver와 달리 Spine은 grid 생성 시 등록된다. 모든 Spine이 지연 로딩된다고 설명하지 않는다.
-- SkeletonData 캐시는 skeleton URL 기준이다. atlas 조합을 바꾸는 수정이면 캐시 키의 적합성을 함께 확인한다.
+- Previews and details share one offscreen 512×512 WebGL canvas, copying results into individual 2D canvases. Keep it attached outside the visible area: detaching it from the DOM can make clientWidth/Height zero.
+- Bounds exclude transparent attachments and preserve aspect ratio.
+- Rebuilding the grid keeps only `detail` in the registry; closing details removes that registration.
+- Unlike ordinary cards using IntersectionObserver, Spine registers during grid creation. Do not describe every Spine asset as lazy-loaded.
+- SkeletonData is cached by skeleton URL. When changing atlas combinations, check whether the cache key remains appropriate.
 
-hash는 skeleton/atlas URL에 붙지만 atlas 내부 이미지 페이지에는 자동으로 붙지 않는다. 이미지 갱신 캐시 문제는 [유지보수](maintenance.md). ZIP의 variant 전체 포함 규칙은 [번들](bundles.md).
+Hashes are appended to skeleton/atlas URLs but not automatically to image pages inside the atlas. See [Maintenance](maintenance.md) for image-update caching issues and [Bundles](bundles.md) for the rule that ZIPs include all variants.

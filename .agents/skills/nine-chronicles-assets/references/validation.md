@@ -1,10 +1,10 @@
-# 범위에 맞는 검증
+# Validation Appropriate to the Change
 
-진입: 데이터/로더/뷰어를 바꾼 뒤 또는 사실 재확인. 명령은 저장소 루트에서 실행한다. 기준 상태의 문제를 새 변경의 회귀와 구분한다. 전용 테스트/빌드/CI 설정은 기준 커밋에 없다.
+Use this guide after data/loader/viewer changes or to verify facts. Run commands from the repository root. Distinguish baseline issues from regressions introduced by the change. The baseline commit has no dedicated test/build/CI configuration.
 
-## 매니페스트와 파일 연결
+## Manifests and referenced files
 
-아래는 표준 Python만 사용하며 파일을 바꾸지 않는다. 파일 경로·프레임 메타데이터·중복 ID·Spine 페이지를 검사한다. 파티클 미연결은 기존 7종도 있으므로 진단으로 출력하며 자동 실패시키지 않는다. 새 누락은 변경 전 결과와 비교한다.
+The following uses only standard Python and does not modify files. It checks paths, frame metadata, duplicate IDs, and Spine pages. Unresolved particle textures are reported diagnostically rather than failing automatically because seven names are already unresolved at baseline. Compare with pre-change output to identify new omissions.
 
 ```bash
 python3 - <<'PY'
@@ -58,11 +58,11 @@ raise SystemExit(bool(errors))
 PY
 ```
 
-이 검사는 이미지 바이트의 실제 크기, hash, Spine 바이너리 호환성, 실제 시각적 품질을 보장하지 않는다. 이미지 교체라면 이미지 도구로 크기를 확인한다. hash를 확인할 때만 `hashlib.sha1(path.read_bytes()).hexdigest()[:10]`를 해당 clip.hash와 비교한다. JSON skeleton 변경은 animations 키와 skins 이름만 추출해 선언과 비교하고, binary는 런타임 로딩으로 확인한다.
+This does not verify actual image dimensions, hashes, Spine binary compatibility, or visual quality. For image replacement, check dimensions with an image tool. When checking hashes, compare `hashlib.sha1(path.read_bytes()).hexdigest()[:10]` with the corresponding clip.hash. For JSON skeleton changes, extract animations keys and skins names and compare them with declarations; verify binary skeletons through runtime loading.
 
-뷰어는 이펙트도 CharacterLib으로 읽으며 `loader.js`를 직접 로드하지 않는다. EffectLib 변경은 뷰어 확인만으로 검증되지 않으므로 소비 예제를 별도로 실행한다. `index.html`의 character-loader.js와 particles.js에는 고정 `?v=`가 있어 해당 코드 배포 시 캐시 갱신도 확인한다.
+The viewer reads effects through CharacterLib and does not load `loader.js` directly. Viewer checks alone therefore do not validate EffectLib changes; run a consuming example separately. character-loader.js and particles.js have fixed `?v=` values in index.html, so check cache invalidation when deploying changes to those files.
 
-## JavaScript 변경일 때만
+## Only for JavaScript changes
 
 ```bash
 node --check loader.js
@@ -78,12 +78,12 @@ console.log('inline syntax OK');
 JS
 ```
 
-위 검사는 문법만 확인하며 브라우저 동작을 보장하지 않는다.
+These checks verify syntax only, not browser behavior.
 
-## 브라우저 확인 범위
+## Browser check scope
 
-실행은 [유지보수](maintenance.md). 변경에 맞춰 검색/필터, 정지 클립, 다중 행 시트, Spine 기본/variant, 파티클, 단일/선택 ZIP을 확인한다. ZIP 변경은 압축을 풀어 매니페스트 참조 파일을 확인하고 소비 프로젝트의 HTTP 서버에서 대표 에셋을 로드한다. 바꾸지 않은 전체 에셋의 육안 검사를 요구하지 않는다.
+See [Maintenance](maintenance.md) for startup. Match checks to the change: search/filters, still clips, multi-row sheets, base/variant Spine, particles, and single/selection ZIPs. For ZIP changes, extract the archive, verify manifest-referenced files, and load representative assets through the consuming project's HTTP server. Do not require visual inspection of every unchanged asset.
 
-## 스킬 문서를 갱신할 때
+## When updating skill documents
 
-링크, 함수/파일명, 실행 예시를 확인한다. 하위 문서를 늘리면 부모에 선택 조건을 추가한다. 모든 참고문서를 한 번에 읽도록 지시하지 않는다. 독립 에이전트에 진입점과 실제 과업만 주고 읽은 경로·출력량·결과를 기록해 막힌 곳을 개선한다.
+Check links, function/filenames, and runnable examples. When adding a child document, add its selection criteria to the parent. Do not instruct agents to read all references at once. Give an independent agent only the entrypoint and a realistic task, record its reading path, output volume, and results, and improve places where it gets stuck.

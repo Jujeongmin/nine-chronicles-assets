@@ -1,37 +1,37 @@
-# 실행·갱신·문제 조사
+# Running, Updating, and Investigating Problems
 
-진입: 로컬 실행, 파일/매니페스트 변경, 깨진 에셋 조사. 필드가 필요하면 [스키마](manifest-schema.md), 검사 명령은 [검증](validation.md)을 읽는다.
+Use this guide to run locally, change files/manifests, or investigate broken assets. Read [Schema](manifest-schema.md) for fields and [Validation](validation.md) for check commands.
 
-## 로컬 실행
+## Run locally
 
-루트에서 `python3 -m http.server 8765 --bind 127.0.0.1`로 시작하고 `http://localhost:8765/`를 연다. 포트 사용 중이면 다른 포트를 선택한다. file://로 직접 열면 fetch/WebGL이 제한된다. 별도 npm install/build는 없다.
+From the root, run `python3 -m http.server 8765 --bind 127.0.0.1` and open `http://localhost:8765/`. Choose another port if it is occupied. Opening file:// directly restricts fetch/WebGL. No separate npm install/build is required.
 
-- 맥 `열기-맥.command`: Python 3 필요, lsof로 8765부터 빈 포트 선택 후 브라우저를 열고 서버 실행. 기준 커밋에는 실행 비트가 없어 더블클릭이 실패할 수 있다. 조사 시 `git ls-files -s '열기-맥.command'`로 확인한다. 임시 실행은 `sh 열기-맥.command`도 가능하다.
-- 윈도우 `열기-윈도우.bat` → `tools/serve.ps1`: 내장 PowerShell HttpListener, localhost 8765–8785. 추가 Python 설치는 불필요. `.bat`는 CRLF, `.command`는 LF를 .gitattributes로 지정한다.
-- 로컬이어도 Spine(unpkg), JSZip(cdnjs), 폰트(Google)는 네트워크를 쓴다. 페이지가 열리는 것과 오프라인 전체 기능 지원은 다르다.
-- README의 Pages 주소는 배포된 뷰어 안내다. 이 저장소에는 배포 workflow가 없으므로 실제 Pages 설정/배포 성공을 코드만으로 확정하지 않는다.
+- Mac `열기-맥.command`: requires Python 3, uses lsof to find a free port starting at 8765, opens the browser, and starts the server. The baseline commit lacks the executable bit, so double-clicking may fail. Check with `git ls-files -s '열기-맥.command'` when investigating. `sh 열기-맥.command` can also run it temporarily.
+- Windows `열기-윈도우.bat` → `tools/serve.ps1`: built-in PowerShell HttpListener on localhost ports 8765–8785. No extra Python installation is required. .gitattributes specifies CRLF for `.bat` and LF for `.command`.
+- Even locally, Spine (unpkg), JSZip (cdnjs), and fonts (Google) use the network. A page opening successfully does not imply full offline functionality.
+- The Pages address in README points to the deployed viewer. This repository has no deployment workflow, so code alone cannot confirm actual Pages settings or successful deployment.
 
-## 에셋 추가·교체 순서
+## Add or replace assets
 
-1. [에셋 찾기](find-assets.md)로 기존 ID와 유사 항목을 확인한다. 사용자 변경 범위와 Git 상태를 확인하고 남의 변경을 보존한다.
-2. 파일을 해당 디렉터리에 두고 알맞은 매니페스트에 등록한다. flat와 animations 형식은 [스키마](manifest-schema.md). 단순 이미지 파일 추가만으로는 목록에 나오지 않는다.
-3. 파일/프레임 수/격자/fps/defaultAnimation을 실제 데이터와 맞춘다. 새 ID는 파티클 ID까지 포함하여 고유해야 한다.
-4. 새 category/game은 표시명 사전에 추가한다. 새 category를 특정 UI 종류에 넣으려면 `index.html GROUPS`도 확인한다.
-5. 이미지 hash는 기존 값들이 SHA-1 앞 10자리와 일치한다. 교체할 때 바이트 기반으로 갱신한다. Spine hash의 생성 알고리즘은 저장소에 없으므로 단정하지 않는다.
-6. Spine은 기본+variants와 atlas 내부 페이지까지 함께 다룬다. skeleton/atlas hash로 페이지 이미지 캐시가 갱신되지는 않는다. 필요하면 폴더 경로도 바꾸고 모든 참조를 함께 갱신한다. [Spine](spine.md).
-7. [검증](validation.md) 후 브라우저에서 바뀐 에셋·동작·다운로드만 확인한다. UI 변경이면 데스크톱과 모바일도 확인한다.
+1. Use [Find assets](find-assets.md) to check existing IDs and similar entries. Confirm the user's requested scope and Git state; preserve others' changes.
+2. Put files in the appropriate directory and register them in the correct manifest. See [Schema](manifest-schema.md) for flat and animations formats. Adding an image file alone does not make it appear in the list.
+3. Match file/frame count/grid/fps/defaultAnimation to actual data. New IDs must be unique, including across particle IDs.
+4. Add new category/game labels to the display-name maps. To place a new category in a specific UI group, also inspect `GROUPS` in index.html.
+5. Existing image hashes match the first 10 characters of SHA-1. Recompute them from bytes when replacing files. The repository does not contain the Spine hash generation algorithm; do not assert one.
+6. For Spine, handle the base, variants, and all atlas image pages together. skeleton/atlas hashes do not invalidate page-image caches. If needed, change directory paths and update all references together. See [Spine](spine.md).
+7. Run [Validation](validation.md), then check the changed assets, motions, and downloads in a browser. For UI changes, check desktop and mobile too.
 
-저장소에는 원본 Unity 프로젝트, 추출기, 매니페스트 재생성 파이프라인이 없다. 기록에 없는 “재생성 명령”을 추측하지 않는다. 자동 추출이 요구되면 원본 위치와 도구를 별도로 확인한다.
+The repository contains no source Unity project, extractor, or manifest regeneration pipeline. Do not invent an undocumented regeneration command. If automatic extraction is requested, establish the source location and tools separately.
 
-## 증상에서 다음 위치 찾기
+## Route symptoms to the next location
 
-| 증상 | 먼저 확인 | 다음 문서 |
+| Symptom | First check | Next document |
 |---|---|---|
-| 목록 전체 로드 실패 | HTTP로 열었는지, 네 JSON 응답/파싱 | [뷰어](viewer.md)의 초기 로드 |
-| 한 이미지가 안 보임 | manifest file, hash URL, 프레임 격자 | [검증](validation.md) |
-| 정지 그림만 보임 | clip.frames와 spine의 구분 | [게임 연동](integration.md) |
-| Spine만 안 보임 | CDN, skeleton 유형, atlas 모든 페이지 | [Spine](spine.md) |
-| 파티클 일부만 안 보임 | texture 정규화와 resolver 결과 | [파티클](particles.md) |
-| ZIP 파일 부족/오류 | bundleOf 후 atlas 확장 단계, CDN | [번들](bundles.md) |
+| Entire list fails to load | HTTP access and response/parsing of all four JSON files | Initial loading in [Viewer](viewer.md) |
+| One image is invisible | Manifest file, hash URL, and frame grid | [Validation](validation.md) |
+| Only a still image appears | Difference between clip.frames and spine | [Integration](integration.md) |
+| Only Spine is invisible | CDN, skeleton type, and every atlas page | [Spine](spine.md) |
+| Some particles are invisible | Texture normalization and resolver results | [Particles](particles.md) |
+| ZIP has missing files or fails | Atlas expansion after bundleOf, and CDN | [Bundles](bundles.md) |
 
-기존 코드의 `CHARACTERS.md` 안내는 없는 파일을 가리킨다. 실제 스키마는 이 스킬의 [스키마](manifest-schema.md)에 정리했다. 라이선스/사용 허가는 저장소에 명시된 문서가 없어 여기서 확정하지 않는다.
+Existing code refers to a missing `CHARACTERS.md`. The actual schema is documented in this skill's [Schema](manifest-schema.md). The repository has no explicit licensing/usage-permission document, so this guide does not establish those permissions.
