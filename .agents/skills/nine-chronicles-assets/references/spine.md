@@ -1,6 +1,6 @@
 # Spine: Motions, Skins, and Separate Variants
 
-Use this guide when an entry has spine data and skeletal animation is needed, or when modifying Spine previews. Read [Integration](integration.md) additionally only when also using ordinary still/frame clips. This document covers Spine files, motions, and time units.
+Use this guide whenever a character/monster with spine data is used as a gameplay actor, even if the user only asks for a simple game, or when modifying Spine previews. Animation is the default for these actors; do not wait for a separate request. Intentionally static portraits/icons and explicit user requests for still images are exceptions. Read [Integration](integration.md) additionally only when also using ordinary still/frame clips. This document covers Spine files, motions, and time units.
 
 ## Select the exact data
 
@@ -9,6 +9,14 @@ Use this guide when an entry has spine data and skeletal animation is needed, or
 3. Use skeleton/atlas/skin/defaultAnimation/animations from the selected object together. Do not assume a variant has the same motions as the base.
 
 `skin` names a skin within the same skeleton. Each variant has a key/label and **its own skeleton/atlas**. A flat clip named `black` and a Spine variant named `black` are separate representations.
+
+## Connect animations to gameplay
+
+- Read `animations` and `defaultAnimation` from the selected Spine specification. Choose a suitable idle/default motion and start it when the actor becomes ready; merely loading the skeleton is not complete integration.
+- Map the states actually implemented by the game, such as movement, attack, hit reaction, and death, to available motions. Preserve exact names and case; do not invent motions or assume every skeleton has the same set. If a needed motion is absent, choose an appropriate existing motion or report the gap.
+- Loop continuous states such as idle/movement. Play attacks and other one-shot actions once, returning to the appropriate state on completion; death normally remains terminal. Change animations on state transitions, not every frame, so they can advance.
+- Advance and render the animation in the game loop using the runtime steps below. Verify in the consuming game's browser that the default pose visibly animates and that implemented state transitions play the intended motions.
+- Do not silently replace a failed Spine integration with a PNG and report the actor as complete. Resolve missing files/runtime problems or explicitly report the blocker and any temporary fallback.
 
 ## Resolve files in order
 

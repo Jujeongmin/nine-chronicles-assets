@@ -7,6 +7,8 @@ description: Find Nine Chronicles images, Spine assets, particles, and ZIP conte
 
 This repository is a **static asset library**, not the game itself. `index.html` provides search, previews, and ZIP downloads; JSON manifests connect images, Spine assets, and particles. There is no npm build, backend, or database.
 
+**Animate gameplay characters and monsters by default when Spine is available.** A request to build even a simple game includes using their provided animations; do not wait for a separate animation request or stop at displaying a still image. Inspect the selected asset's `spine` data and follow [Spine](references/spine.md) to connect available motions to the implemented game states. Still images are appropriate for intentionally static uses such as portraits/icons, or when the user explicitly requests them.
+
 ## Reading order
 
 The documentation directory is `.agents/skills/nine-chronicles-assets/` at the repository root.
@@ -20,7 +22,7 @@ Running `cat references/viewer.md` from the repository root uses the wrong path.
 | Request | Next document | What it provides |
 |---|---|---|
 | Find an asset by name, ID, type, or motion | [Find assets](references/find-assets.md) | Small search results → one entry → files |
-| Use images or animations in a game | [Integration](references/integration.md) | Sprite loader selection and integration into the consuming project |
+| Use assets in a game | [Integration](references/integration.md) | Spine-first gameplay actors, renderer selection, and project integration |
 | Modify search, categories, previews, or download UI | [Viewer](references/viewer.md) | Functions, state, and rendering ownership by feature |
 | Fix startup, add/replace assets, or check consistency | [Maintenance](references/maintenance.md) | Running locally → schema, validation, and update procedures |
 

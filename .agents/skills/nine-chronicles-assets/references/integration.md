@@ -4,16 +4,20 @@ Use this guide to integrate assets into the consuming game project. If the ID is
 
 ## Choose a renderer
 
+Inspect the selected character/monster entry for `spine` before choosing a loader. **For a gameplay actor with Spine, integrate its animations by default, including in a simple game or prototype.** Do not wait for the user to ask for animation separately. Use still images only for intentionally static roles such as portraits/icons or an explicit user request. Follow [Spine](spine.md) for available motions, state transitions, and playback verification.
+
 | Required representation | Choice | Next reading |
 |---|---|---|
-| Character/icon still image or frame sheet | `CharacterLib` | Code below |
+| Gameplay character/monster with Spine (default) | Spine runtime | [Spine](spine.md) |
+| Character without Spine, or an intentionally static portrait/icon | `CharacterLib` | Code below |
 | Image/frame sheet from effects.json | `EffectLib` | Code below |
-| Character skeletal motion or separate color variant | Spine runtime | [Spine](spine.md) |
 | Emitter simulation from particles.json | `ParticleFX` | [Particles](particles.md) |
 
-`CharacterLib.play()` does not automatically play `spine` metadata. When a character has both still clips and Spine data, choose the representation needed. Many facial-expression tabs do not imply frame animation.
+`CharacterLib.play()` does not automatically play `spine` metadata. A still clip is not a substitute for the available skeletal animations of a gameplay actor. Many facial-expression tabs do not imply frame animation.
 
 ## Sprite API
+
+The still-expression example below is for static presentation, not the default implementation of a gameplay actor that has Spine.
 
 **Download and copy the required assets, manifests, and loaders into the game project. Do not point the implementation at the library's current hosted URLs, including `github.io`.** Direct cross-origin URLs can cause CORS failures when fetching or rendering assets. Preserve repository-relative paths beside the manifests and serve the files from the game's own origin. Use a selection ZIP when a full copy is unnecessary. The runtimes expose browser globals or CommonJS exports, but image loading and drawing require a browser environment.
 
