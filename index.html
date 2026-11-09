@@ -363,7 +363,7 @@ function buildChips() {
   var lib = state.lib;
   // 주소로 들어온 칸이 비어 있으면 '전체'로 되돌린다
   var gameCounts = countBy(ALL, gameOf);
-  if (!gameCounts[state.game]) state.game = 'all';
+  if (!gameCounts[state.game]) state.game = Object.keys(gameCounts)[0];   // 게임 칸에는 '전체'가 없다
   var inGame = ALL.filter(function (c) { return passes(c, 0); });
   var groupCounts = countBy(inGame, groupOf);
   if (!groupCounts[state.group]) state.group = 'all';
@@ -394,7 +394,7 @@ function buildChips() {
   function row(box, title, field, total, defs) {
     box.innerHTML = '';
     box.appendChild(el('span', { class: 'chips-label', text: title }));
-    box.appendChild(chip(field, 'all', '전체', total));
+    if (field !== 'game') box.appendChild(chip(field, 'all', '전체', total));
     defs.forEach(function (d) {
       // 고른 위 칸에 없는 것은 숨긴다 (지금 눌려 있는 칩만은 남겨서 빈 화면 이유가 보이게)
       if (d.n || state[field] === d.key) box.appendChild(chip(field, d.key, d.label, d.n));
@@ -410,7 +410,7 @@ function buildChips() {
         if (field === 'group') state.cat = 'all';
         // ?game=dh&group=effect 링크로 그 화면을 바로 열 수 있게 주소에 남긴다
         var p = new URLSearchParams();
-        ['game', 'group', 'cat'].forEach(function (f) { if (state[f] !== 'all') p.set(f, state[f]); });
+        (Object.keys(gameCounts).length > 1 ? ['game', 'group', 'cat'] : ['group', 'cat']).forEach(function (f) { if (state[f] !== 'all') p.set(f, state[f]); });
         history.replaceState(null, '', location.pathname + (String(p) ? '?' + p : '') + location.hash);
         buildChips(); renderGrid();
       }
