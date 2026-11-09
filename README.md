@@ -10,9 +10,9 @@
 
 ## 구성
 
-- `characters.json` · `icons.json` · `effects.json` · `particles.json` — 매니페스트
-- `characters/` · `effects/` · `singles/` — 그림·Spine 파일
-- `index.html` — 뷰어, `character-loader.js` · `loader.js` · `particles.js` — 게임에 넣는 로더
+- `characters.json` · `icons.json` · `effects.json` · `particles.json` · `sounds.json` — 매니페스트
+- `characters/` · `effects/` · `singles/` — 그림·Spine 파일, `sounds/` — 효과음·음악
+- `index.html` — 뷰어, `character-loader.js` · `loader.js` · `particles.js` · `sound-loader.js` — 게임에 넣는 로더
 
 에셋을 누르면 상세 창에서 **전체 받기 (ZIP)** 으로 쓰는 데 필요한 파일을 한 번에 받을 수 있다.
 

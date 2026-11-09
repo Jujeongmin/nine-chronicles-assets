@@ -99,6 +99,11 @@ a{color:var(--violet)}
   padding:3px 10px;font-size:11.5px;color:var(--muted);white-space:nowrap}
 .stage{aspect-ratio:4/3;border:1px solid var(--line);border-radius:11px;overflow:hidden;display:grid;place-items:center;background:var(--plate)}
 .stage canvas{display:block;width:100%;height:100%}
+.stage.sound-stage{aspect-ratio:auto;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px}
+.sound-glyph{font-size:54px;line-height:1;color:var(--violet)}
+.sound-stage audio{width:100%;max-width:440px}
+.thumb .sound-glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.thumb .sound-time{position:absolute;right:8px;bottom:7px;font:500 11px/1 var(--mono);color:var(--muted)}
 .stage[data-bg=light]{background:#e7e9ef}
 .stage[data-bg=checker]{background-color:#9aa0ae;
   background-image:linear-gradient(45deg,#727888 25%,transparent 25%),linear-gradient(-45deg,#727888 25%,transparent 25%),
@@ -196,7 +201,7 @@ a{color:var(--violet)}
 /* ── 상수 ──────────────────────────────────────────────────────────────
  * 캐릭터·아이콘·이펙트·파티클을 한 그리드에서 게임 → 종류 → 세부 순으로 거른다.
  * 데이터는 characters.json · icons.json · effects.json (스프라이트, 전부 같은
- * CharacterLib 형식) + particles.json (파티클 설계, ParticleFX).
+ * CharacterLib 형식) + particles.json (파티클 설계, ParticleFX) + sounds.json (효과음·음악).
  * 항목이 늘어나면 이 페이지는 고치지 않아도 그대로 그리드에 나타난다.
  * 스키마는 CHARACTERS.md.
  * ────────────────────────────────────────────────────────────────────── */
@@ -217,7 +222,9 @@ var GROUPS = [
   { key: 'prop', label: '배경 오브젝트', cats: ['building', 'prop'] },
   { key: 'background', label: '배경', cats: ['background', 'scene', 'tile'] },
   { key: 'ui', label: 'UI', cats: ['ui'] },
-  { key: 'effect', label: '이펙트', cats: ['impact', 'lightning', 'explosion', 'projectile', 'zone', 'aura', 'misc', 'single', 'pfx'] }
+  { key: 'effect', label: '이펙트', cats: ['impact', 'lightning', 'explosion', 'projectile', 'zone', 'aura', 'misc', 'single', 'pfx'] },
+  { key: 'sfx', label: '효과음', cats: ['sfx_ui', 'sfx_combat', 'sfx_reward'] },
+  { key: 'music', label: '음악', cats: ['music_field', 'music_battle', 'music_menu', 'music_result', 'music_event'] }
 ];
 var PFX_LABEL = '파티클';
 
@@ -242,7 +249,7 @@ var els = {
 var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var params = new URLSearchParams(location.search);
 var state = {
-  lib: null, pfx: null,
+  lib: null, pfx: null, sounds: [], soundCategories: {},
   game: params.get('game') || 'all',
   group: params.get('group') || 'all',
   // ?filter=animated 는 예전 캐릭터 페이지 링크
@@ -281,14 +288,20 @@ function copy(text, btn) {
 Promise.all([
   CharacterLib.load(['./characters.json', './icons.json', './effects.json']),
   // 파티클 설계는 909KB 한 덩어리. 로컬에서 여니 처음에 같이 받는다.
-  ParticleFX.load('./particles.json', { resolveTexture: resolveTexture })
+  ParticleFX.load('./particles.json', { resolveTexture: resolveTexture }),
+  fetch('./sounds.json', { cache: 'no-cache' }).then(function (r) {
+    if (!r.ok) throw new Error('sounds.json -> HTTP ' + r.status);
+    return r.json();
+  })
 ]).then(function (loaded) {
-  var lib = loaded[0], pfx = loaded[1];
+  var lib = loaded[0], pfx = loaded[1], sounds = loaded[2];
   state.lib = lib;
   state.pfx = pfx;
+  state.soundCategories = sounds.categories;
+  state.sounds = sounds.assets.map(function (s) { return Object.assign({ sound: true }, s); });
   ALL = lib.characters.concat(pfx.ids().sort().map(function (id) {
     return { id: id, name: id, category: 'pfx', game: pfx.spec.game, pfx: true };
-  }));
+  })).concat(state.sounds);
   els.sub.textContent = '에셋 ' + ALL.length + '개 · 움직이는 것 ' + ALL.filter(hasAnimation).length + '개';
   if (reduceMotion) { els.motionNote.hidden = false; els.playBtn.textContent = '재생'; els.playBtn.setAttribute('aria-pressed', 'false'); }
   buildChips();
@@ -307,6 +320,7 @@ Promise.all([
 /* ── 칩 ────────────────────────────────────────────────────────────── */
 
 function hasAnimation(c) {
+  if (c.sound) return false;
   if (c.pfx) return true;
   return !!c.spine || c.animationNames().some(function (name) { return c.getClip(name).frames > 1; });
 }
@@ -314,7 +328,11 @@ function hasAnimation(c) {
 // 게임 칸 — game 이 없는 항목은 'none'(출처 미상)으로 묶는다.
 function gameOf(c) { return c.game || 'none'; }
 function gameLabel(key) { return key === 'none' ? '출처 미상' : (state.lib.games[key] || key); }
-function catLabel(key) { return key === 'pfx' ? PFX_LABEL : state.lib.categoryLabel(key); }
+function catLabel(key) { return key === 'pfx' ? PFX_LABEL : state.soundCategories[key] || state.lib.categoryLabel(key); }
+function soundTime(seconds) {
+  var whole = Math.round(seconds);
+  return seconds < 10 ? seconds.toFixed(1) + '초' : Math.floor(whole / 60) + ':' + String(whole % 60).padStart(2, '0');
+}
 function groupOf(c) {
   for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].cats.indexOf(c.category) !== -1) return GROUPS[i].key;
   return 'etc';
@@ -449,7 +467,7 @@ function setupPrompt() {
 
   return [
     '이 게임 에셋 라이브러리(캐릭터·아이콘·UI·배경·이펙트·파티클)를 이 프로젝트에서 쓸 수 있게 붙여줘.',
-    '매니페스트가 넷이다: characters.json · icons.json (캐릭터·아이콘·UI·배경), effects.json (이펙트), particles.json (파티클). id 는 서로 안 겹친다.',
+    '매니페스트가 다섯이다: characters.json · icons.json (캐릭터·아이콘·UI·배경), effects.json (이펙트), particles.json (파티클), sounds.json (효과음·음악). id 는 서로 안 겹친다.',
     '',
     '베이스: ' + base,
     '',
@@ -471,6 +489,7 @@ function setupPrompt() {
     '  - spine 이 있으면 skeleton · atlas 와, atlas 텍스트 안에 적힌 그림 파일(atlas 와 같은 폴더). variants 도 같다.',
     '  - layout 이 있으면 그 JSON (타일셋 배치표).',
     '  - 파티클은 particles.json 의 그 id 설계와, 그 설계가 쓰는 텍스처 그림.',
+    '  - 사운드는 sounds.json 의 그 id 의 file 하나. 로더를 쓰면 sound-loader.js 도 복사한다.',
     '  - 로더를 쓰면 character-loader.js (캐릭터·아이콘·UI·배경) / loader.js (이펙트) / particles.js 도 복사한다.',
     '  사람이 받을 때는 상세 창의 "전체 받기 (ZIP)" 에 위 파일이 다 들어 있다.',
     '',
@@ -555,13 +574,25 @@ function setupPrompt() {
     '  텍스처 이름을 소문자·언더바로 바꾸면 effects.json 의 id 다 — 그 항목의 file 을 같이 복사한다.',
     '    예: NY_glow_01 -> ny_glow_01 -> ' + base + 'singles/ny_glow_01.webp',
     '',
+    '사운드 ' + state.sounds.length + '개 (효과음·음악)',
+    '  매니페스트: ' + base + 'sounds.json',
+    '    항목마다 id, name, category, type(sfx·music), file, format, duration, loop, game',
+    '  로더: ' + base + 'sound-loader.js',
+    "    const sounds = await SoundLib.load('" + local + "sounds.json');",
+    "    addEventListener('pointerdown', () => sounds.unlock(['<음악 id>']), { once: true });   // 브라우저는 첫 입력 전 소리를 막는다",
+    "    await sounds.preload(['<효과음 id>']);",
+    "    sounds.play('<id>', { volume: 0.8 });   // type 에 맞춰 효과음 또는 음악으로 재생",
+    '    sounds.stopMusic({ fade: 0.5 });',
+    '  음악은 decodeAudioData 로 통째로 풀지 말 것. 긴 곡은 PCM 으로 메모리에 상주한다. 로더는 <audio> 스트리밍을 쓴다.',
+    '',
     '이 내용을 프로젝트 규칙 파일에 적어 둬 — 쓰는 도구에 맞게',
     '(CLAUDE.md / AGENTS.md / .cursorrules / .github/copilot-instructions.md 등).',
     '앞으로는 내가 id (+ 모습/동작 이름)만 말한다.',
     '  예: "mage 를 전사 위치에 idle 로 띄워줘" (정지 이미지)',
     '      "발키리 black 스킨 써줘" (variants)',
     '      "fox_warrior_sword 의 attack 넣어줘" (진짜 Spine 동작 전환)',
-    '      "frost_zone 을 전사 공격에 써줘" (이펙트)'
+    '      "frost_zone 을 전사 공격에 써줘" (이펙트)',
+    '      "bgm_boss1 을 보스전 음악으로, sfx_critical01 을 치명타에 써줘" (사운드)'
   ].join('\n');
 }
 
@@ -601,14 +632,16 @@ function renderGrid() {
     var canvas, isSpineThumb = !!character.spine && !character.spine.incomplete;
     if (isSpineThumb) {
       canvas = createSpineThumb(character, state.lib.baseUrl);
-    } else {
+    } else if (!character.sound) {
       canvas = el('canvas', { width: String(THUMB * DPR), height: String(THUMB * DPR) });
     }
 
-    var thumb = el('div', { class: 'thumb' }, [
-      canvas,
+    var thumbParts = character.sound
+      ? [el('span', { class: 'sound-glyph', text: '♪' }), el('span', { class: 'sound-time', text: soundTime(character.duration) })]
+      : [canvas];
+    var thumb = el('div', { class: 'thumb' }, thumbParts.concat([
       el('span', { class: 'tag', text: catLabel(character.category) })
-    ]);
+    ]));
     var card = el('div', { class: 'card', 'aria-current': 'false' }, [
       el('button', { class: 'plate-btn', type: 'button', onclick: function () { selectCharacter(character); } }, [thumb]),
       el('div', { class: 'namerow' }, [
@@ -628,6 +661,8 @@ function renderGrid() {
     els.grid.appendChild(card);
     if (isSpineThumb) {
       cards.push({ character: character, card: card, isSpineThumb: true });
+    } else if (character.sound) {
+      cards.push({ character: character, card: card, sound: true });
     } else {
       // 카드가 이천 장 가까이라 화면에 보이는 것만 그림을 받고 그린다 (파티클은 보일 때만 시뮬레이션)
       var rec = character.pfx
@@ -977,10 +1012,20 @@ function selectCharacter(character) {
   document.getElementById('scrim').classList.add('on');
   // fetch every clip's image now, not just the one showing - so switching
   // tabs afterward is instant instead of a blank flash while it loads
-  if (!character.pfx) character.preload();
+  if (!character.pfx && !character.sound) character.preload();
+}
+
+var previewAudio = null;
+function stopSoundPreview() {
+  if (!previewAudio) return;
+  previewAudio.pause();
+  previewAudio.removeAttribute('src');
+  previewAudio.load();
+  previewAudio = null;
 }
 
 function closeDetail() {
+  stopSoundPreview();
   els.detail.classList.remove('open');
   els.scrim.classList.remove('on');
   thumbSpine.registry = thumbSpine.registry.filter(function (r) { return r.key !== 'detail'; });
@@ -990,12 +1035,21 @@ els.scrim.addEventListener('click', closeDetail);
 function renderDetail() {
   var c = state.current;
   var lib = state.lib;
-  var clip = c.pfx ? null : c.getClip(state.animName);
+  stopSoundPreview();
+  var clip = c.pfx || c.sound ? null : c.getClip(state.animName);
   var isSpine = !!c.spine;
   var stage, animTabs, skinTabs;
   var activeSpine = c.spine;
 
-  if (c.pfx) {
+  if (c.sound) {
+    drawStage = function () {};
+    state.anim = null;
+    thumbSpine.registry = thumbSpine.registry.filter(function (r) { return r.key !== 'detail'; });
+    previewAudio = el('audio', { controls: '', preload: 'auto', src: './' + c.file + '?v=' + c.hash });
+    stage = el('div', { class: 'stage sound-stage' }, [el('span', { class: 'sound-glyph', text: '♪' }), previewAudio]);
+    var previewStart = previewAudio.play();
+    if (previewStart) previewStart.catch(function () { /* 자동 재생이 막히면 재생 버튼으로 듣는다 */ });
+  } else if (c.pfx) {
     var pfxCanvas = el('canvas', { width: '640', height: '480' });
     var pfxCtx = pfxCanvas.getContext('2d');
     var inst = null;
@@ -1106,7 +1160,7 @@ function renderDetail() {
     }, [document.createTextNode(label)]);
   }));
 
-  var file = c.pfx ? 'particles.json' : clip.file;
+  var file = c.pfx ? 'particles.json' : c.sound ? c.file : clip.file;
   var absUrl = SITE_BASE + file;
   var snippet = usage(c, activeSpine);
 
@@ -1123,9 +1177,11 @@ function renderDetail() {
   var ctl = el('div', { class: 'ctl' }, []);
   if (skinTabs) ctl.appendChild(skinTabs);
   if (animTabs) ctl.appendChild(animTabs);
-  ctl.appendChild(bgSeg);
-  els.detail.appendChild(ctl);
-  if (!isSpine) {
+  if (!c.sound) {
+    ctl.appendChild(bgSeg);
+    els.detail.appendChild(ctl);
+  }
+  if (!isSpine && !c.sound) {
     els.detail.appendChild(el('div', { class: 'ctl' }, [
       el('span', { class: 'hint', text: '배율' }),
       el('input', { type: 'range', min: '0.5', max: '4', step: '0.25', value: String(state.scale), oninput: function (e) { state.scale = parseFloat(e.target.value); } })
@@ -1135,7 +1191,13 @@ function renderDetail() {
   var meta = el('dl', { class: 'meta' }, []);
   addMeta(meta, '이름', c.name);
   addMeta(meta, '게임', gameLabel(gameOf(c)));
-  if (c.pfx) {
+  if (c.sound) {
+    addMeta(meta, '종류', c.type === 'music' ? '음악' : '효과음');
+    addMeta(meta, '길이', soundTime(c.duration));
+    addMeta(meta, '형식', c.format.toUpperCase() + ' · ' + (c.channels === 1 ? '모노' : '스테레오') + ' · ' + c.sampleRate + 'Hz');
+    addMeta(meta, '파일 크기', (c.bytes / 1048576).toFixed(c.bytes < 1048576 ? 2 : 1) + 'MB');
+    addMeta(meta, '반복', c.loop ? '권장' : '한 번 재생');
+  } else if (c.pfx) {
     var ems = state.pfx.get(c.id).emitters || [], dur = 0, tex = {};
     ems.forEach(function (e) {
       dur = Math.max(dur, e.duration || 0);
@@ -1167,11 +1229,13 @@ function renderDetail() {
   els.detail.appendChild(el('div', { class: 'dt-sec', text: '받기' }));
   var zipBtn = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadZip(c, zipBtn); } }, [document.createTextNode('전체 받기 (ZIP)')]);
   var dl = el('div', { class: 'acts' }, [zipBtn]);
-  if (!c.pfx) dl.appendChild(download(file, '이 그림만 (' + file.split('.').pop().toUpperCase() + ')'));
+  if (!c.pfx) dl.appendChild(download(file, (c.sound ? '이 파일만 (' : '이 그림만 (') + file.split('.').pop().toUpperCase() + ')'));
   if (c.layout) dl.appendChild(download(c.layout, '배치표만 (JSON)'));
   els.detail.appendChild(dl);
-  els.detail.appendChild(el('p', { class: 'hint', text: '전체 받기에는 이 에셋에 딸린 것 전부(그림 탭 전부 · Spine 스켈레톤·아틀라스 · 타일 배치표 · 파티클 텍스처)와 ' +
-    '이 에셋 하나짜리 매니페스트(' + c.id + '.json — 프레임 크기·fps), 로더, 사용법.txt 가 들어 있습니다. ' +
+  els.detail.appendChild(el('p', { class: 'hint', text: (c.sound
+    ? '전체 받기에는 소리 파일과 이 사운드 하나짜리 매니페스트(' + c.id + '.json), 로더, 사용법.txt 가 들어 있습니다. '
+    : '전체 받기에는 이 에셋에 딸린 것 전부(그림 탭 전부 · Spine 스켈레톤·아틀라스 · 타일 배치표 · 파티클 텍스처)와 ' +
+      '이 에셋 하나짜리 매니페스트(' + c.id + '.json — 프레임 크기·fps), 로더, 사용법.txt 가 들어 있습니다. ') +
     '게임 프로젝트의 assets/' + c.id + '/ 에 풀면 아래 코드가 그대로 맞습니다.' }));
 
   var acts = el('div', { class: 'acts' }, []);
@@ -1223,6 +1287,14 @@ function pfxTextures(id) {
 
 /** 압축에 넣을 { 파일 경로들, 매니페스트 } */
 function bundleOf(c) {
+  if (c.sound) {
+    var soundEntry = Object.assign({}, c);
+    delete soundEntry.sound;
+    var soundManifest = { version: 1, games: {}, categories: {}, assets: [soundEntry] };
+    soundManifest.games[c.game] = gameLabel(c.game);
+    soundManifest.categories[c.category] = catLabel(c.category);
+    return { files: ['sound-loader.js', c.file], manifest: soundManifest };
+  }
   if (c.pfx) {
     var textures = pfxTextures(c.id), effects = {};
     effects[c.id] = state.pfx.get(c.id);
@@ -1317,10 +1389,17 @@ function downloadPicked(btn) {
   var chars = { version: 1, defaultFps: 12, games: {}, categories: {}, assets: [] };
   var fx = { version: 1, defaultFps: 12, games: {}, categories: {}, assets: [] };
   var pfx = { version: 1, textures: {}, effects: {} };
+  var picked = { version: 1, games: {}, categories: {}, assets: [] };
   var files = [];
   list.forEach(function (c) {
     var b = bundleOf(c);
     files = files.concat(b.files);
+    if (c.sound) {
+      picked.assets.push(b.manifest.assets[0]);
+      Object.assign(picked.games, b.manifest.games);
+      Object.assign(picked.categories, b.manifest.categories);
+      return;
+    }
     if (c.pfx) {
       pfx.game = c.game;
       Object.assign(pfx.textures, b.manifest.textures);
@@ -1358,6 +1437,14 @@ function downloadPicked(btn) {
       '  particles.json 의 textures(이름 -> 파일)로 그림을 먼저 읽고',
       "  ParticleFX.load('" + dir + "particles.json', { resolveTexture: (name) => images[name] }) 후 fx.spawn('<id>', { x, y }).", '');
   }
+  if (picked.assets.length) {
+    texts['sounds.json'] = JSON.stringify(picked, null, 2);
+    how.push('사운드 ' + picked.assets.length + '개 — sounds.json',
+      '  <' + 'script src="' + dir + 'sound-loader.js"><' + '/script>',
+      "  const sounds = await SoundLib.load('" + dir + "sounds.json');",
+      "  addEventListener('pointerdown', () => sounds.unlock(), { once: true });",
+      "  sounds.play('<id>', { volume: 0.8 });   // 효과음·음악 자동 구분", '');
+  }
   texts['사용법.txt'] = [
     '에셋 ' + list.length + '개: ' + list.map(function (c) { return c.id; }).join(', '),
     '',
@@ -1394,6 +1481,24 @@ els.pickAllBtn.addEventListener('click', function () {
 /** 상세 창 '코드' 와 압축 안 사용법.txt — 압축을 게임 프로젝트의 assets/<id>/ 에 풀었다고 보고 쓴다. */
 function usage(c, activeSpine) {
   var dir = 'assets/' + c.id + '/';
+  if (c.sound) return [
+    '<' + 'script src="' + dir + 'sound-loader.js"><' + '/script>',
+    '',
+    "const sounds = await SoundLib.load('" + dir + c.id + ".json');"
+  ].concat(c.type === 'music' ? [
+    '',
+    '// 음악은 스트리밍으로 재생한다. 브라우저는 첫 입력 전 소리를 막는다.',
+    "addEventListener('pointerdown', () => sounds.play('" + c.id + "', { volume: 0.6, fade: 0.5 }), { once: true });",
+    '',
+    '// 멈출 때',
+    'sounds.stopMusic({ fade: 0.5 });'
+  ] : [
+    "await sounds.preload(['" + c.id + "']);",
+    "addEventListener('pointerdown', () => sounds.unlock(), { once: true });   // 브라우저는 첫 입력 전 소리를 막는다",
+    '',
+    '// 필요할 때',
+    "sounds.play('" + c.id + "', { volume: 0.8 });"
+  ]).join('\n');
   if (c.pfx) return [
     '<' + 'script src="' + dir + 'particles.js"><' + '/script>',
     '',

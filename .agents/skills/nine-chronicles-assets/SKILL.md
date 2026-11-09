@@ -23,6 +23,7 @@ Running `cat references/viewer.md` from the repository root uses the wrong path.
 |---|---|---|
 | Find an asset by name, ID, type, or motion | [Find assets](references/find-assets.md) | Small search results → one entry → files |
 | Use assets in a game | [Integration](references/integration.md) | Spine-first gameplay actors, renderer selection, and project integration |
+| Find or use sound effects and music | [Sounds](references/sounds.md) | Search, playback API, and manifest fields |
 | Modify search, categories, previews, or download UI | [Viewer](references/viewer.md) | Functions, state, and rendering ownership by feature |
 | Fix startup, add/replace assets, or check consistency | [Maintenance](references/maintenance.md) | Running locally → schema, validation, and update procedures |
 
@@ -35,9 +36,9 @@ If the ID and type are already known, skip the intermediate guide:
 ## Minimal project map
 
 - `characters.json`: characters, monsters, and items. `icons.json`: equipment, weapon, and skill icons.
-- `effects.json`: image/sprite effects. `particles.json`: particle recipes in the `effects` object.
+- `effects.json`: image/sprite effects. `particles.json`: particle recipes in the `effects` object. `sounds.json`: sound effects and music.
 - `characters/`, `effects/`, `singles/`: actual files. Do not infer IDs or filenames from directory names alone.
-- `character-loader.js` → `CharacterLib`, `loader.js` → `EffectLib`, `particles.js` → `ParticleFX`.
+- `character-loader.js` → `CharacterLib`, `loader.js` → `EffectLib`, `particles.js` → `ParticleFX`, `sound-loader.js` → `SoundLib`.
 - `characters/index.html` redirects the old URL to the root viewer.
 
 ## Usage rules
