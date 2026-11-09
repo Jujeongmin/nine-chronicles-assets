@@ -50,14 +50,14 @@
       "category": "music_battle",
       "game": "nc",
       "type": "music",
-      "file": "sounds/music/bgm_hard1.wav",
-      "format": "wav",
+      "file": "sounds/music/bgm_hard1.ogg",
+      "format": "ogg",
       "duration": 29.54,
       "channels": 2,
       "sampleRate": 44100,
-      "bytes": 5210668,
+      "bytes": 809520,
       "loop": true,
-      "hash": "08fc553e48"
+      "hash": "c75d56bf4f"
     },
     {
       "id": "bgm_hard2",
@@ -65,14 +65,14 @@
       "category": "music_battle",
       "game": "nc",
       "type": "music",
-      "file": "sounds/music/bgm_hard2.wav",
-      "format": "wav",
+      "file": "sounds/music/bgm_hard2.ogg",
+      "format": "ogg",
       "duration": 44.0,
       "channels": 2,
       "sampleRate": 48000,
-      "bytes": 12672196,
+      "bytes": 930024,
       "loop": true,
-      "hash": "0e81c4bbac"
+      "hash": "89e4bf6e16"
     },
     {
       "id": "bgm_prologue_battle",
@@ -95,14 +95,14 @@
       "category": "music_battle",
       "game": "nc",
       "type": "music",
-      "file": "sounds/music/bgm_pvp_battle.wav",
-      "format": "wav",
+      "file": "sounds/music/bgm_pvp_battle.ogg",
+      "format": "ogg",
       "duration": 113.55,
       "channels": 2,
       "sampleRate": 44100,
-      "bytes": 20030030,
+      "bytes": 2569529,
       "loop": true,
-      "hash": "c39febb85f"
+      "hash": "5788ec4bbd"
     },
     {
       "id": "bgm_event_22summer_01",
@@ -665,14 +665,14 @@
       "category": "music_result",
       "game": "nc",
       "type": "music",
-      "file": "sounds/music/bgm_pvp_lose.wav",
-      "format": "wav",
+      "file": "sounds/music/bgm_pvp_lose.ogg",
+      "format": "ogg",
       "duration": 8.46,
       "channels": 2,
       "sampleRate": 44100,
-      "bytes": 1491886,
+      "bytes": 179360,
       "loop": false,
-      "hash": "e22a2b731d"
+      "hash": "1f049c27bd"
     },
     {
       "id": "bgm_pvp_win",
@@ -680,14 +680,14 @@
       "category": "music_result",
       "game": "nc",
       "type": "music",
-      "file": "sounds/music/bgm_pvp_win.wav",
-      "format": "wav",
+      "file": "sounds/music/bgm_pvp_win.ogg",
+      "format": "ogg",
       "duration": 11.84,
       "channels": 2,
       "sampleRate": 44100,
-      "bytes": 2088944,
+      "bytes": 293826,
       "loop": false,
-      "hash": "0df9769102"
+      "hash": "9e52e9cbf4"
     },
     {
       "id": "bgm_win",
