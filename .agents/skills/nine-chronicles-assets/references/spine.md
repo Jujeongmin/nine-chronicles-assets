@@ -48,6 +48,7 @@ Use `registerSpine` in `index.html` as the implementation reference:
 3. If skin is specified, combine the existing `default` and specified skin into a new Skin with `addSkin`. Call `setSlotsToSetupPose()`.
 4. Create AnimationState and call `setAnimation(0, name, loop)` with the exact name. Reuse the state for later motion changes.
 5. Each frame, call `animationState.update(dtSeconds)`, `apply`, and `skeleton.updateWorldTransform()`, then draw. Time is in **seconds**.
+6. When drawing an actor into a fixed-size canvas or texture, compute the framing bounds across every motion the game uses by sampling each animation through its duration. Do not frame from the idle or setup pose alone, or taller motions such as hops and jumps will be clipped. If the larger bounds make the actor smaller, scale its display size to compensate.
 
 Additional functions to inspect only for viewer changes: `ensureThumbSpineCanvas`, `visibleBounds`, `createSpineThumb`, `renderDetail`.
 
