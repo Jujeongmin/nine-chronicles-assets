@@ -1080,6 +1080,21 @@
       "hash": "54b2375bb0"
     },
     {
+      "id": "sfx_monster_yeti_grumble_02",
+      "name": "예티 으르렁거림 2",
+      "category": "sfx_combat",
+      "game": "nc",
+      "type": "sfx",
+      "file": "sounds/sfx/sfx_monster_yeti_grumble_02.wav",
+      "format": "wav",
+      "duration": 1.54,
+      "channels": 2,
+      "sampleRate": 192000,
+      "bytes": 1827564,
+      "loop": false,
+      "hash": "4f6c792617"
+    },
+    {
       "id": "sfx_swing",
       "name": "휘두르기 1",
       "category": "sfx_combat",

@@ -8322,6 +8322,21 @@
         "hash": "0a9a801eb3"
       },
       "hash": "12296c2575"
+    },
+    {
+      "id": "deep_sea_skin",
+      "name": "심해 스킨",
+      "category": "humanoid",
+      "game": "nc",
+      "file": "characters/humanoid/deep_sea_skin.webp",
+      "width": 2261,
+      "height": 1881,
+      "frameWidth": 2261,
+      "frameHeight": 1881,
+      "frames": 1,
+      "cols": 1,
+      "rows": 1,
+      "hash": "a662c2a7a4"
     }
   ]
 }
