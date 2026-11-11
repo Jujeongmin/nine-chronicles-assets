@@ -61,6 +61,18 @@ a{color:var(--violet)}
 .card{position:relative}
 .pick{position:absolute;top:7px;right:7px;width:18px;height:18px;margin:0;accent-color:var(--violet);cursor:pointer;z-index:2}
 
+.btn.warn{border-color:var(--amber);color:var(--amber)}
+.btn.warn:hover{background:color-mix(in srgb,var(--amber) 14%,transparent)}
+.fix{max-width:min(620px,calc(100vw - 32px));background:var(--plate);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+.fix::backdrop{background:#000a}
+.fix h2{margin:0 0 10px;font:700 17px/1.3 var(--display)}
+.fix p,.fix li{font-size:13.5px;line-height:1.65}
+.fix ol{margin:8px 0 12px;padding-left:20px}
+.fix-prompt{background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;max-height:42vh;overflow:auto;
+  font:400 12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word;margin:0 0 10px}
+.fix-note{color:var(--muted);margin:0 0 14px}
+.fix-acts{display:flex;gap:8px;justify-content:flex-end}
+
 /* ---- 2단 레이아웃 ------------------------------------------------------ */
 .app{max-width:1760px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 400px}
 .grid{padding:18px 22px 90px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:13px;align-content:start}
@@ -160,23 +172,29 @@ a{color:var(--violet)}
     <div class="row1">
       <div class="brand">
         <h1>Asset Library</h1>
-        <span class="sub" id="sub">불러오는 중…</span>
+        <span class="sub" id="sub" data-en="Loading…">불러오는 중…</span>
       </div>
       <div class="search">
-        <input id="q" type="search" placeholder="검색 — id, 이름, 번개, 아우라…" aria-label="에셋 검색" autocomplete="off">
-        <button class="clear" id="qClear" type="button" aria-label="검색어 지우기" hidden>&times;</button>
+        <input id="q" type="search" placeholder="검색 — id, 이름, 번개, 아우라…" aria-label="에셋 검색" autocomplete="off"
+          data-en-placeholder="Search — id, name, lightning, aura…" data-en-aria-label="Search assets">
+        <button class="clear" id="qClear" type="button" aria-label="검색어 지우기" data-en-aria-label="Clear search" hidden>&times;</button>
       </div>
       <div class="tally" id="tally"></div>
-      <button class="btn" id="pickAllBtn" type="button" title="지금 화면에 보이는 에셋을 전부 골라 한 번에 받습니다">전부 고르기</button>
-      <button class="btn" id="playBtn" type="button" aria-pressed="true">정지</button>
+      <button class="btn" id="pickAllBtn" type="button" title="지금 화면에 보이는 에셋을 전부 골라 한 번에 받습니다"
+        data-en-title="Select every asset shown and download them together" data-en="Select all">전부 고르기</button>
+      <button class="btn" id="playBtn" type="button" aria-pressed="true" data-en="Pause">정지</button>
       <button class="btn primary" id="setupBtn" type="button"
-        title="쓰는 AI 도구에 프로젝트당 한 번만 붙여넣으면 됩니다. 그 뒤로는 id 만 말하면 됩니다">AI에 연결하기</button>
+        title="쓰는 AI 도구에 프로젝트당 한 번만 붙여넣으면 됩니다. 그 뒤로는 id 만 말하면 됩니다"
+        data-en-title="Paste this once per project into your AI tool. After that, just mention asset ids." data-en="Connect to AI">AI에 연결하기</button>
+      <button class="btn warn" id="fixBtn" type="button" data-en="Boxes around characters after publishing?">배포본에서 캐릭터 주변에 박스가 보일 시</button>
+      <button class="btn" id="langBtn" type="button" lang="en">English</button>
     </div>
     <div class="chips" id="gameChips"></div>
     <div class="chips" id="groupChips"></div>
     <div class="chips" id="chips"></div>
     <div class="pickbar" id="pickBar" hidden></div>
-    <p class="motion-note" id="motionNote" hidden>
+    <p class="motion-note" id="motionNote" hidden
+       data-en-html="Your OS <b>reduce motion</b> setting is on, so animations start paused. Press <b>Play</b> above to start them.">
       OS 의 <b>동작 줄이기</b> 설정이 켜져 있어 멈춘 채로 시작했습니다.
       위의 <b>재생</b> 을 누르면 움직입니다.
     </p>
@@ -184,10 +202,26 @@ a{color:var(--violet)}
 </header>
 
 <div class="app">
-  <main class="grid" id="grid" aria-label="에셋 목록"></main>
-  <aside class="detail" id="detail" aria-label="에셋 상세"></aside>
+  <main class="grid" id="grid" aria-label="에셋 목록" data-en-aria-label="Assets"></main>
+  <aside class="detail" id="detail" aria-label="에셋 상세" data-en-aria-label="Asset details"></aside>
 </div>
 <div class="scrim" id="scrim"></div>
+
+<dialog class="fix" id="fixDialog" aria-labelledby="fixTitle">
+  <h2 id="fixTitle" data-en="Boxes around characters in the published game">배포본에서 캐릭터 주변에 박스가 보일 시</h2>
+  <p data-en="If Spine characters look fine in the editor but show rectangular boxes around them in the published game, follow these steps.">에디터에서는 괜찮은데 배포한 게임에서만 Spine 캐릭터 주변에 사각형 박스가 보이면, 아래 순서대로 고칠 수 있습니다.</p>
+  <ol>
+    <li data-en="Copy the prompt below.">아래 문장을 복사합니다.</li>
+    <li data-en-html="Paste it into the <b>AI chat in the Verse8 editor</b> and send it.">Verse8 <b>에디터의 AI 입력창</b>에 붙여넣고 보냅니다.</li>
+    <li data-en="When the AI finishes, publish the game again.">AI 수정이 끝나면 게임을 다시 배포합니다.</li>
+  </ol>
+  <pre class="fix-prompt" id="fixPrompt"></pre>
+  <p class="fix-note" data-en="You do not need to download or replace any image or atlas files. Only the code changes.">이미지나 atlas 파일은 다시 받거나 바꾸지 않아도 됩니다. 코드만 수정됩니다.</p>
+  <div class="fix-acts">
+    <button class="btn primary" id="fixCopy" type="button" data-en="Copy prompt">문장 복사</button>
+    <button class="btn" id="fixClose" type="button" data-en="Close">닫기</button>
+  </div>
+</dialog>
 
 <noscript><p style="padding:24px">이 페이지는 자바스크립트가 있어야 동작합니다.</p></noscript>
 
@@ -214,19 +248,36 @@ var THUMB = 150, DPR = Math.min(window.devicePixelRatio || 1, 2);
 
 // 종류(위 칸) → 세부(아래 칸). 세부 키는 매니페스트의 category, 파티클은 'pfx'.
 // 여기 없는 category 가 생기면 '기타' 종류로 모인다.
+// 화면 언어: ?lang= 주소 > 저장한 선택 > 브라우저 언어. AI 연결 글과 압축 안 사용법은 AI 가 읽으니 한국어로 둔다.
+var LANG = (function () {
+  var asked = new URLSearchParams(location.search).get('lang');
+  if (asked === 'en' || asked === 'ko') return asked;
+  try { var saved = localStorage.getItem('assetLibraryLang'); if (saved === 'en' || saved === 'ko') return saved; } catch (e) { /* 저장소가 막혀도 브라우저 언어로 */ }
+  return /^ko\b/i.test(navigator.language || '') ? 'ko' : 'en';
+})();
+function L(ko, en) { return LANG === 'en' ? en : ko; }
+var CAT_EN = {
+  humanoid: 'Humanoid', beast: 'Beast', animal: 'Animal', monster: 'Monster', item: 'Item',
+  weapon: 'Weapon (icon)', skill_icon: 'Skill icon', equipment_icon: 'Equipment icon',
+  impact: 'Impact', lightning: 'Lightning', explosion: 'Explosion', projectile: 'Projectile', zone: 'Zone', aura: 'Aura', misc: 'Misc', single: 'Single image',
+  sfx_ui: 'Interface', sfx_combat: 'Combat', sfx_reward: 'Reward & result',
+  music_field: 'Field', music_battle: 'Battle music', music_menu: 'Menu', music_result: 'Result music', music_event: 'Event'
+};
+var GAME_EN = { nc: 'Nine Chronicles' };
+
 var GROUPS = [
-  { key: 'character', label: '캐릭터', cats: ['humanoid', 'beast', 'animal', 'monster'] },
-  { key: 'pixel', label: '픽셀', cats: ['pixel', 'creature'] },
-  { key: 'item', label: '아이템', cats: ['item'] },
-  { key: 'icon', label: '아이콘', cats: ['weapon', 'skill_icon', 'equipment_icon'] },
-  { key: 'prop', label: '배경 오브젝트', cats: ['building', 'prop'] },
-  { key: 'background', label: '배경', cats: ['background', 'scene', 'tile'] },
+  { key: 'character', label: L('캐릭터', 'Characters'), cats: ['humanoid', 'beast', 'animal', 'monster'] },
+  { key: 'pixel', label: L('픽셀', 'Pixel'), cats: ['pixel', 'creature'] },
+  { key: 'item', label: L('아이템', 'Items'), cats: ['item'] },
+  { key: 'icon', label: L('아이콘', 'Icons'), cats: ['weapon', 'skill_icon', 'equipment_icon'] },
+  { key: 'prop', label: L('배경 오브젝트', 'Props'), cats: ['building', 'prop'] },
+  { key: 'background', label: L('배경', 'Backgrounds'), cats: ['background', 'scene', 'tile'] },
   { key: 'ui', label: 'UI', cats: ['ui'] },
-  { key: 'effect', label: '이펙트', cats: ['impact', 'lightning', 'explosion', 'projectile', 'zone', 'aura', 'misc', 'single', 'pfx'] },
-  { key: 'sfx', label: '효과음', cats: ['sfx_ui', 'sfx_combat', 'sfx_reward'] },
-  { key: 'music', label: '음악', cats: ['music_field', 'music_battle', 'music_menu', 'music_result', 'music_event'] }
+  { key: 'effect', label: L('이펙트', 'Effects'), cats: ['impact', 'lightning', 'explosion', 'projectile', 'zone', 'aura', 'misc', 'single', 'pfx'] },
+  { key: 'sfx', label: L('효과음', 'Sound effects'), cats: ['sfx_ui', 'sfx_combat', 'sfx_reward'] },
+  { key: 'music', label: L('음악', 'Music'), cats: ['music_field', 'music_battle', 'music_menu', 'music_result', 'music_event'] }
 ];
-var PFX_LABEL = '파티클';
+var PFX_LABEL = L('파티클', 'Particles');
 
 var els = {
   sub: document.getElementById('sub'),
@@ -277,7 +328,7 @@ function copy(text, btn) {
   navigator.clipboard.writeText(text).then(function () {
     if (!btn) return;
     var was = btn.textContent;
-    btn.textContent = '복사됨';
+    btn.textContent = L('복사됨', 'Copied');
     btn.classList.add('ok');
     setTimeout(function () { btn.textContent = was; btn.classList.remove('ok'); }, 1100);
   });
@@ -302,18 +353,19 @@ Promise.all([
   ALL = lib.characters.concat(pfx.ids().sort().map(function (id) {
     return { id: id, name: id, category: 'pfx', game: pfx.spec.game, pfx: true };
   })).concat(state.sounds);
-  els.sub.textContent = '에셋 ' + ALL.length + '개 · 움직이는 것 ' + ALL.filter(hasAnimation).length + '개';
-  if (reduceMotion) { els.motionNote.hidden = false; els.playBtn.textContent = '재생'; els.playBtn.setAttribute('aria-pressed', 'false'); }
+  var animatedCount = ALL.filter(hasAnimation).length;
+  els.sub.textContent = L('에셋 ' + ALL.length + '개 · 움직이는 것 ' + animatedCount + '개', ALL.length + ' assets · ' + animatedCount + ' animated');
+  if (reduceMotion) { els.motionNote.hidden = false; els.playBtn.textContent = L('재생', 'Play'); els.playBtn.setAttribute('aria-pressed', 'false'); }
   buildChips();
   renderGrid();
   requestAnimationFrame(tick);
 }).catch(function (err) {
-  els.sub.textContent = '로드 실패';
+  els.sub.textContent = L('로드 실패', 'Failed to load');
   els.grid.innerHTML = '';
   els.grid.appendChild(el('div', { class: 'nothing' }, [
-    el('h2', { text: '에셋 목록을 불러오지 못했습니다' }),
+    el('h2', { text: L('에셋 목록을 불러오지 못했습니다', 'Could not load the asset list') }),
     el('p', { text: String(err && err.message || err) }),
-    location.protocol === 'file:' ? el('p', { text: '파일을 직접 열면 브라우저가 막습니다. 폴더의 "열기-윈도우.bat"(맥은 "열기-맥.command")로 여세요.' }) : document.createTextNode('')
+    location.protocol === 'file:' ? el('p', { text: L('파일을 직접 열면 브라우저가 막습니다. 폴더의 "열기-윈도우.bat"(맥은 "열기-맥.command")로 여세요.', 'Browsers block pages opened directly from a file. Open the folder with "열기-윈도우.bat" ("열기-맥.command" on Mac).') }) : document.createTextNode('')
   ]));
 });
 
@@ -327,11 +379,15 @@ function hasAnimation(c) {
 
 // 게임 칸 — game 이 없는 항목은 'none'(출처 미상)으로 묶는다.
 function gameOf(c) { return c.game || 'none'; }
-function gameLabel(key) { return key === 'none' ? '출처 미상' : (state.lib.games[key] || key); }
-function catLabel(key) { return key === 'pfx' ? PFX_LABEL : state.soundCategories[key] || state.lib.categoryLabel(key); }
+function gameLabel(key) { return key === 'none' ? L('출처 미상', 'Unknown source') : ((LANG === 'en' && GAME_EN[key]) || state.lib.games[key] || key); }
+function catLabel(key) {
+  if (key === 'pfx') return PFX_LABEL;
+  if (LANG === 'en' && CAT_EN[key]) return CAT_EN[key];
+  return state.soundCategories[key] || state.lib.categoryLabel(key);
+}
 function soundTime(seconds) {
   var whole = Math.round(seconds);
-  return seconds < 10 ? seconds.toFixed(1) + '초' : Math.floor(whole / 60) + ':' + String(whole % 60).padStart(2, '0');
+  return seconds < 10 ? seconds.toFixed(1) + L('초', 's') : Math.floor(whole / 60) + ':' + String(whole % 60).padStart(2, '0');
 }
 function groupOf(c) {
   for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].cats.indexOf(c.category) !== -1) return GROUPS[i].key;
@@ -372,29 +428,29 @@ function buildChips() {
   if (state.cat !== 'animated' && !catCounts[state.cat]) state.cat = 'all';
   // games 이름표 순서대로, 이름표에 없는 키(출처 미상 등)는 뒤에
   var gameOrder = Object.keys(lib.games).concat(Object.keys(gameCounts).filter(function (k) { return !(k in lib.games); }));
-  var groups = GROUPS.concat(groupCounts.etc ? [{ key: 'etc', label: '기타', cats: Object.keys(lib.categories).filter(function (k) {
+  var groups = GROUPS.concat(groupCounts.etc ? [{ key: 'etc', label: L('기타', 'Other'), cats: Object.keys(lib.categories).filter(function (k) {
     return groupOf({ category: k }) === 'etc';
   }) }] : []);
   var group = groups.filter(function (g) { return g.key === state.group; })[0];
 
-  row(els.gameChips, '게임', 'game', ALL.length, gameOrder.map(function (k) {
+  row(els.gameChips, L('게임', 'Game'), 'game', ALL.length, gameOrder.map(function (k) {
     return { key: k, label: gameLabel(k), n: gameCounts[k] || 0 };
   }));
-  row(els.groupChips, '종류', 'group', inGame.length, groups.map(function (g) {
+  row(els.groupChips, L('종류', 'Type'), 'group', inGame.length, groups.map(function (g) {
     return { key: g.key, label: g.label, n: groupCounts[g.key] || 0 };
   }));
   // 세부 — 고른 종류 안의 칸들. 종류가 한 칸뿐이면(픽셀, UI…) 세부는 '애니메이션 있음'만 남는다.
-  var subs = [{ key: 'animated', label: '애니메이션 있음', n: inGroup.filter(hasAnimation).length }];
+  var subs = [{ key: 'animated', label: L('애니메이션 있음', 'Animated'), n: inGroup.filter(hasAnimation).length }];
   if (group && group.cats.length > 1) {
     subs = subs.concat(group.cats.map(function (k) { return { key: k, label: catLabel(k), n: catCounts[k] || 0 }; }));
   }
-  row(els.chips, '세부', 'cat', inGroup.length, subs);
+  row(els.chips, L('세부', 'Detail'), 'cat', inGroup.length, subs);
   syncBarHeight();   // 칩 줄 길이가 바뀌면 머리 높이도 바뀐다 — 상세 창이 그 아래에 붙게
 
   function row(box, title, field, total, defs) {
     box.innerHTML = '';
     box.appendChild(el('span', { class: 'chips-label', text: title }));
-    if (field !== 'game') box.appendChild(chip(field, 'all', '전체', total));
+    if (field !== 'game') box.appendChild(chip(field, 'all', L('전체', 'All'), total));
     defs.forEach(function (d) {
       // 고른 위 칸에 없는 것은 숨긴다 (지금 눌려 있는 칩만은 남겨서 빈 화면 이유가 보이게)
       if (d.n || state[field] === d.key) box.appendChild(chip(field, d.key, d.label, d.n));
@@ -445,7 +501,7 @@ els.qClear.addEventListener('click', function () {
 });
 els.playBtn.addEventListener('click', function () {
   state.playing = !state.playing;
-  els.playBtn.textContent = state.playing ? '정지' : '재생';
+  els.playBtn.textContent = state.playing ? L('정지', 'Pause') : L('재생', 'Play');
   els.playBtn.setAttribute('aria-pressed', String(state.playing));
 });
 
@@ -596,12 +652,68 @@ function setupPrompt() {
   ].join('\n');
 }
 
+/* ── 화면 언어 · 박스 해결 안내 ─────────────────────────────────────── */
+
+(function applyStaticText() {
+  document.documentElement.lang = LANG;
+  var lang = document.getElementById('langBtn');
+  lang.textContent = LANG === 'en' ? '한국어' : 'English';
+  lang.setAttribute('lang', LANG === 'en' ? 'ko' : 'en');
+  if (LANG !== 'en') return;
+  document.title = 'Asset Library — Game asset search';
+  document.querySelectorAll('[data-en]').forEach(function (n) { n.textContent = n.getAttribute('data-en'); });
+  document.querySelectorAll('[data-en-html]').forEach(function (n) { n.innerHTML = n.getAttribute('data-en-html'); });
+  [['data-en-placeholder', 'placeholder'], ['data-en-title', 'title'], ['data-en-aria-label', 'aria-label']].forEach(function (pair) {
+    document.querySelectorAll('[' + pair[0] + ']').forEach(function (n) { n.setAttribute(pair[1], n.getAttribute(pair[0])); });
+  });
+})();
+
+document.getElementById('langBtn').addEventListener('click', function () {
+  var next = LANG === 'en' ? 'ko' : 'en';
+  try { localStorage.setItem('assetLibraryLang', next); } catch (e) { /* 주소로 넘긴다 */ }
+  var p = new URLSearchParams(location.search);
+  p.set('lang', next);
+  location.search = String(p);
+});
+
+// 게이트웨이가 큰 atlas 를 PNG 로 바꿔 투명 픽셀에 색이 남을 때, 2D 캔버스를 한 번 거치면 그 색이 0 이 된다.
+var FIX_CODE = [
+  'function cleanTransparent(image) {',
+  "  const canvas = document.createElement('canvas');",
+  '  canvas.width = image.width;',
+  '  canvas.height = image.height;',
+  "  canvas.getContext('2d').drawImage(image, 0, 0);",
+  '  return canvas;',
+  '}',
+  'const load = manager.textureLoader;',
+  'manager.textureLoader = (image) => load(cleanTransparent(image));'
+].join('\n');
+var FIX_PROMPT = L([
+  'Spine 캐릭터 주변에 사각형 박스가 보이는 문제를 고쳐줘.',
+  'Spine 을 불러오는 코드에서 spine.AssetManager 를 만든 직후, loadTextureAtlas 를 부르기 전에',
+  'atlas 이미지를 2D 캔버스에 한 번 그린 뒤 그 캔버스로 텍스처를 만들도록 textureLoader 를 감싸줘.',
+  '', FIX_CODE, '',
+  '이미지와 atlas 파일은 바꾸지 마.'
+].join('\n'), [
+  'Fix the rectangular boxes that appear around Spine characters.',
+  'In the code that loads Spine, right after the spine.AssetManager is created and before loadTextureAtlas is called,',
+  'wrap textureLoader so each atlas image is drawn onto a 2D canvas once and the texture is created from that canvas.',
+  '', FIX_CODE, '',
+  'Do not change any image or atlas files.'
+].join('\n'));
+var fixDialog = document.getElementById('fixDialog');
+document.getElementById('fixPrompt').textContent = FIX_PROMPT;
+document.getElementById('fixBtn').addEventListener('click', function () { fixDialog.showModal(); });
+document.getElementById('fixClose').addEventListener('click', function () { fixDialog.close(); });
+fixDialog.addEventListener('click', function (e) { if (e.target === fixDialog) fixDialog.close(); });
+document.getElementById('fixCopy').addEventListener('click', function (e) { copy(FIX_PROMPT, e.currentTarget); });
+
 els.setupBtn.addEventListener('click', function () {
   navigator.clipboard.writeText(setupPrompt()).then(function () {
-    els.setupBtn.textContent = '복사됨 — AI 에게 붙여넣기';
+    els.setupBtn.textContent = L('복사됨 — AI 에게 붙여넣기', 'Copied — paste it into your AI');
     els.setupBtn.classList.add('ok');
     setTimeout(function () {
-      els.setupBtn.textContent = 'AI에 연결하기';
+      els.setupBtn.textContent = L('AI에 연결하기', 'Connect to AI');
       els.setupBtn.classList.remove('ok');
     }, 2400);
   });
@@ -624,7 +736,7 @@ function renderGrid() {
     return;
   }
   if (list.length === 0) {
-    els.grid.appendChild(el('div', { class: 'nothing' }, [el('p', { text: '검색·필터에 걸리는 에셋이 없습니다.' })]));
+    els.grid.appendChild(el('div', { class: 'nothing' }, [el('p', { text: L('검색·필터에 걸리는 에셋이 없습니다.', 'No assets match your search or filters.') })]));
     return;
   }
 
@@ -646,12 +758,12 @@ function renderGrid() {
       el('button', { class: 'plate-btn', type: 'button', onclick: function () { selectCharacter(character); } }, [thumb]),
       el('div', { class: 'namerow' }, [
         el('span', { class: 'name', text: character.id }),
-        el('button', { class: 'mini', type: 'button', title: 'id 복사', onclick: function (e) { copy(character.id, e.currentTarget); } }, [document.createTextNode('COPY')])
+        el('button', { class: 'mini', type: 'button', title: L('id 복사', 'Copy id'), onclick: function (e) { copy(character.id, e.currentTarget); } }, [document.createTextNode('COPY')])
       ])
     ]);
     card._character = character;
     // 여러 개를 골라 한 압축으로 받는 체크 칸 (그림 누름 판 밖에 둔다 — 누르면 상세가 열리지 않게)
-    var pick = el('input', { type: 'checkbox', class: 'pick', title: '골라서 여러 개 한 번에 받기', 'aria-label': character.id + ' 고르기',
+    var pick = el('input', { type: 'checkbox', class: 'pick', title: L('골라서 여러 개 한 번에 받기', 'Select to download several at once'), 'aria-label': L(character.id + ' 고르기', 'Select ' + character.id),
       onchange: function () {
         if (pick.checked) state.picked[character.id] = true; else delete state.picked[character.id];
         renderPickBar();
@@ -1093,7 +1205,7 @@ function renderDetail() {
     }));
 
     if (c.spine.variants && c.spine.variants.length) {
-      var allSkins = [{ key: null, label: '기본' }].concat(c.spine.variants);
+      var allSkins = [{ key: null, label: L('기본', 'Base') }].concat(c.spine.variants);
       skinTabs = el('div', { class: 'seg' }, allSkins.map(function (v) {
         return el('button', {
           type: 'button', 'aria-pressed': String(state.spineVariant === v.key),
@@ -1123,7 +1235,7 @@ function renderDetail() {
       stageCtx.fillStyle = '#8e92a6';
       stageCtx.font = '14px "IBM Plex Mono", monospace';
       stageCtx.textAlign = 'center';
-      stageCtx.fillText('불러오는 중…', W / 2, H / 2);
+      stageCtx.fillText(L('불러오는 중…', 'Loading…'), W / 2, H / 2);
     };
     var drawStageNow = function () {
       if (!clip.image) { drawLoading(); return; }
@@ -1153,7 +1265,7 @@ function renderDetail() {
   }
 
   var bgSeg = el('div', { class: 'seg' }, ['dark', 'checker', 'light'].map(function (b) {
-    var label = b === 'dark' ? '어둠' : b === 'checker' ? '체커' : '밝음';
+    var label = b === 'dark' ? L('어둠', 'Dark') : b === 'checker' ? L('체커', 'Checker') : L('밝음', 'Light');
     return el('button', {
       type: 'button', 'aria-pressed': String(state.bg === b),
       onclick: function () { state.bg = b; stage.setAttribute('data-bg', b); }
@@ -1165,13 +1277,13 @@ function renderDetail() {
   var snippet = usage(c, activeSpine);
 
   els.detail.innerHTML = '';
-  els.detail.appendChild(el('button', { class: 'dt-close', type: 'button', 'aria-label': '닫기', onclick: closeDetail }, [document.createTextNode('×')]));
+  els.detail.appendChild(el('button', { class: 'dt-close', type: 'button', 'aria-label': L('닫기', 'Close'), onclick: closeDetail }, [document.createTextNode('×')]));
   els.detail.appendChild(el('div', { class: 'dt-head' }, [
     el('div', { class: 'dt-title' }, [
       el('h2', { text: c.id }),
     ]),
     el('span', { class: 'badge', text: catLabel(c.category) }),
-    isSpine ? el('span', { class: 'badge', text: '진짜 애니메이션 (Spine)' }) : null
+    isSpine ? el('span', { class: 'badge', text: L('진짜 애니메이션 (Spine)', 'Real animation (Spine)') }) : null
   ].filter(Boolean)));
   els.detail.appendChild(stage);
   var ctl = el('div', { class: 'ctl' }, []);
@@ -1183,72 +1295,75 @@ function renderDetail() {
   }
   if (!isSpine && !c.sound) {
     els.detail.appendChild(el('div', { class: 'ctl' }, [
-      el('span', { class: 'hint', text: '배율' }),
+      el('span', { class: 'hint', text: L('배율', 'Scale') }),
       el('input', { type: 'range', min: '0.5', max: '4', step: '0.25', value: String(state.scale), oninput: function (e) { state.scale = parseFloat(e.target.value); } })
     ]));
   }
 
   var meta = el('dl', { class: 'meta' }, []);
-  addMeta(meta, '이름', c.name);
-  addMeta(meta, '게임', gameLabel(gameOf(c)));
+  addMeta(meta, L('이름', 'Name'), c.name);
+  addMeta(meta, L('게임', 'Game'), gameLabel(gameOf(c)));
   if (c.sound) {
-    addMeta(meta, '종류', c.type === 'music' ? '음악' : '효과음');
-    addMeta(meta, '길이', soundTime(c.duration));
-    addMeta(meta, '형식', c.format.toUpperCase() + ' · ' + (c.channels === 1 ? '모노' : '스테레오') + ' · ' + c.sampleRate + 'Hz');
-    addMeta(meta, '파일 크기', (c.bytes / 1048576).toFixed(c.bytes < 1048576 ? 2 : 1) + 'MB');
-    addMeta(meta, '반복', c.loop ? '권장' : '한 번 재생');
+    addMeta(meta, L('종류', 'Type'), c.type === 'music' ? L('음악', 'Music') : L('효과음', 'Sound effect'));
+    addMeta(meta, L('길이', 'Length'), soundTime(c.duration));
+    addMeta(meta, L('형식', 'Format'), c.format.toUpperCase() + ' · ' + (c.channels === 1 ? L('모노', 'Mono') : L('스테레오', 'Stereo')) + ' · ' + c.sampleRate + 'Hz');
+    addMeta(meta, L('파일 크기', 'File size'), (c.bytes / 1048576).toFixed(c.bytes < 1048576 ? 2 : 1) + 'MB');
+    addMeta(meta, L('반복', 'Loop'), c.loop ? L('권장', 'Recommended') : L('한 번 재생', 'Plays once'));
   } else if (c.pfx) {
     var ems = state.pfx.get(c.id).emitters || [], dur = 0, tex = {};
     ems.forEach(function (e) {
       dur = Math.max(dur, e.duration || 0);
       if (e.texture) tex[e.texture] = 1;
     });
-    addMeta(meta, '이미터', ems.length + '개');
-    addMeta(meta, '길이', dur.toFixed(2) + '초');
-    addMeta(meta, '반복', ems.some(function (e) { return e.looping; }) ? '있음' : '없음');
-    addMeta(meta, '텍스처', Object.keys(tex).join(', ') || '—');
+    addMeta(meta, L('이미터', 'Emitters'), String(ems.length));
+    addMeta(meta, L('길이', 'Length'), dur.toFixed(2) + L('초', 's'));
+    addMeta(meta, L('반복', 'Loop'), ems.some(function (e) { return e.looping; }) ? L('있음', 'Yes') : L('없음', 'No'));
+    addMeta(meta, L('텍스처', 'Textures'), Object.keys(tex).join(', ') || '—');
   } else if (isSpine) {
-    addMeta(meta, '애니메이션', '있음 (진짜 Spine 스켈레톤) — 동작 버튼을 눌러보세요');
-    addMeta(meta, '동작', activeSpine.animations.join(', '));
-    if (c.spine.variants && c.spine.variants.length) addMeta(meta, '색상/장식', '기본 + ' + c.spine.variants.length + '종 — 위 탭에서 전환');
-    if (c.spine.incomplete) addMeta(meta, '주의', c.spine.incomplete);
-    if (activeSpine.note) addMeta(meta, '메모', activeSpine.note);
+    addMeta(meta, L('애니메이션', 'Animation'), L('있음 (진짜 Spine 스켈레톤) — 동작 버튼을 눌러보세요', 'Yes (real Spine skeleton) — try the motion buttons'));
+    addMeta(meta, L('동작', 'Motions'), activeSpine.animations.join(', '));
+    if (c.spine.variants && c.spine.variants.length) addMeta(meta, L('색상/장식', 'Variants'), L('기본 + ' + c.spine.variants.length + '종 — 위 탭에서 전환', 'Base + ' + c.spine.variants.length + ' — switch with the tabs above'));
+    if (c.spine.incomplete) addMeta(meta, L('주의', 'Note'), c.spine.incomplete);
+    if (activeSpine.note) addMeta(meta, L('메모', 'Memo'), activeSpine.note);
   } else {
     var names = c.animationNames();
-    addMeta(meta, '애니메이션', hasAnimation(c) ? '있음 — 동작 탭을 선택하세요' : '없음 — 정지 이미지');
-    addMeta(meta, hasAnimation(c) ? '동작' : '모습', names.join(', '));
-    addMeta(meta, '프레임', clip.frames + '장 (' + clip.cols + '×' + clip.rows + ')');
-    addMeta(meta, '프레임 크기', clip.frameWidth + '×' + clip.frameHeight);
+    addMeta(meta, L('애니메이션', 'Animation'), hasAnimation(c) ? L('있음 — 동작 탭을 선택하세요', 'Yes — pick a motion tab') : L('없음 — 정지 이미지', 'No — still image'));
+    addMeta(meta, hasAnimation(c) ? L('동작', 'Motions') : L('모습', 'Looks'), names.join(', '));
+    addMeta(meta, L('프레임', 'Frames'), clip.frames + L('장', '') + ' (' + clip.cols + '×' + clip.rows + ')');
+    addMeta(meta, L('프레임 크기', 'Frame size'), clip.frameWidth + '×' + clip.frameHeight);
     addMeta(meta, 'fps', String(clip.fps || 12));
-    if (clip.width && clip.height) addMeta(meta, '시트 크기', clip.width + '×' + clip.height);
+    if (clip.width && clip.height) addMeta(meta, L('시트 크기', 'Sheet size'), clip.width + '×' + clip.height);
   }
-  if (c.source || (clip && clip.source)) addMeta(meta, '원본', c.source || clip.source);
+  if (c.source || (clip && clip.source)) addMeta(meta, L('원본', 'Source'), c.source || clip.source);
   els.detail.appendChild(meta);
 
   // 받기 — '전체 받기'는 게임에 넣는 데 필요한 것 전부(압축), 옆은 지금 보고 있는 탭의 파일 하나
-  els.detail.appendChild(el('div', { class: 'dt-sec', text: '받기' }));
-  var zipBtn = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadZip(c, zipBtn); } }, [document.createTextNode('전체 받기 (ZIP)')]);
+  els.detail.appendChild(el('div', { class: 'dt-sec', text: L('받기', 'Download') }));
+  var zipBtn = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadZip(c, zipBtn); } }, [document.createTextNode(L('전체 받기 (ZIP)', 'Download all (ZIP)'))]);
   var dl = el('div', { class: 'acts' }, [zipBtn]);
-  if (!c.pfx) dl.appendChild(download(file, (c.sound ? '이 파일만 (' : '이 그림만 (') + file.split('.').pop().toUpperCase() + ')'));
-  if (c.layout) dl.appendChild(download(c.layout, '배치표만 (JSON)'));
+  if (!c.pfx) dl.appendChild(download(file, (c.sound ? L('이 파일만 (', 'This file only (') : L('이 그림만 (', 'This image only (')) + file.split('.').pop().toUpperCase() + ')'));
+  if (c.layout) dl.appendChild(download(c.layout, L('배치표만 (JSON)', 'Layout only (JSON)')));
   els.detail.appendChild(dl);
-  els.detail.appendChild(el('p', { class: 'hint', text: (c.sound
+  els.detail.appendChild(el('p', { class: 'hint', text: LANG === 'en'
+    ? 'Download all includes ' + (c.sound ? 'the sound file' : 'everything this asset needs (every image tab, Spine skeleton and atlas, tile layout, particle textures)') +
+      ', a single-asset manifest (' + c.id + '.json), the loader, and 사용법.txt. Unzip it into assets/' + c.id + '/ in your game project and the code below works as is.'
+    : (c.sound
     ? '전체 받기에는 소리 파일과 이 사운드 하나짜리 매니페스트(' + c.id + '.json), 로더, 사용법.txt 가 들어 있습니다. '
     : '전체 받기에는 이 에셋에 딸린 것 전부(그림 탭 전부 · Spine 스켈레톤·아틀라스 · 타일 배치표 · 파티클 텍스처)와 ' +
       '이 에셋 하나짜리 매니페스트(' + c.id + '.json — 프레임 크기·fps), 로더, 사용법.txt 가 들어 있습니다. ') +
     '게임 프로젝트의 assets/' + c.id + '/ 에 풀면 아래 코드가 그대로 맞습니다.' }));
 
   var acts = el('div', { class: 'acts' }, []);
-  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(c.id, e.currentTarget); } }, [document.createTextNode('id 복사')]));
-  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(file, e.currentTarget); } }, [document.createTextNode('경로 복사')]));
-  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(absUrl, e.currentTarget); } }, [document.createTextNode('직링크 복사')]));
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(c.id, e.currentTarget); } }, [document.createTextNode(L('id 복사', 'Copy id'))]));
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(file, e.currentTarget); } }, [document.createTextNode(L('경로 복사', 'Copy path'))]));
+  acts.appendChild(el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(absUrl, e.currentTarget); } }, [document.createTextNode(L('직링크 복사', 'Copy direct link'))]));
   els.detail.appendChild(acts);
 
-  els.detail.appendChild(el('div', { class: 'dt-sec', text: '코드' }));
+  els.detail.appendChild(el('div', { class: 'dt-sec', text: L('코드', 'Code') }));
   var snip = el('pre', { class: 'snip', text: snippet });
   els.detail.appendChild(snip);
   els.detail.appendChild(el('div', { class: 'acts' }, [
-    el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(snippet, e.currentTarget); } }, [document.createTextNode('코드 복사')])
+    el('button', { class: 'btn', type: 'button', onclick: function (e) { copy(snippet, e.currentTarget); } }, [document.createTextNode(L('코드 복사', 'Copy code'))])
   ]));
 }
 
@@ -1263,7 +1378,7 @@ function loadZip() {
     var s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
     s.onload = function () { ok(window.JSZip); };
-    s.onerror = function () { zipReady = null; fail(new Error('압축 도구(JSZip)를 못 불러왔습니다 — 인터넷 연결을 확인하세요')); };
+    s.onerror = function () { zipReady = null; fail(new Error(L('압축 도구(JSZip)를 못 불러왔습니다 — 인터넷 연결을 확인하세요', 'Could not load the zip tool (JSZip). Check your internet connection.'))); };
     document.head.appendChild(s);
   }));
 }
@@ -1326,7 +1441,7 @@ function bundleOf(c) {
 /** 저장소 파일들 + 글 파일들({압축 안 경로: 내용})을 압축 하나로 묶어 내려받게 한다. */
 function saveZip(paths, texts, name, btn) {
   var label = btn.textContent;
-  btn.textContent = '묶는 중…';
+  btn.textContent = L('묶는 중…', 'Packing…');
   btn.disabled = true;
   var files = paths.slice();
   loadZip().then(function (JSZip) {
@@ -1346,7 +1461,7 @@ function saveZip(paths, texts, name, btn) {
           return r.blob();
         }).then(function (blob) {
           zip.file(f, blob);
-          btn.textContent = '묶는 중… ' + (++done) + '/' + unique.length;
+          btn.textContent = L('묶는 중… ', 'Packing… ') + (++done) + '/' + unique.length;
         });
       }));
     }).then(function () {
@@ -1360,7 +1475,7 @@ function saveZip(paths, texts, name, btn) {
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }).catch(function (err) {
-    alert('압축을 만들지 못했습니다: ' + (err && err.message || err));
+    alert(L('압축을 만들지 못했습니다: ', 'Could not create the zip: ') + (err && err.message || err));
   }).then(function () {
     btn.textContent = label;
     btn.disabled = false;
@@ -1452,7 +1567,7 @@ function downloadPicked(btn) {
     '매니페스트(파일 경로 · 프레임 크기 · fps)는 고른 것만 들어 있다.',
     ''
   ].concat(how).join('\n');
-  saveZip(files, texts, '에셋 ' + list.length + '개.zip', btn);
+  saveZip(files, texts, L('에셋 ' + list.length + '개.zip', list.length + ' assets.zip'), btn);
 }
 
 function renderPickBar() {
@@ -1460,11 +1575,11 @@ function renderPickBar() {
   els.pickBar.hidden = !ids.length;
   els.pickBar.innerHTML = '';
   if (ids.length) {
-    var get = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadPicked(get); } }, [document.createTextNode('고른 것 받기 (ZIP)')]);
-    els.pickBar.appendChild(el('span', {}, [el('b', { text: String(ids.length) }), document.createTextNode('개 고름')]));
+    var get = el('button', { class: 'btn primary', type: 'button', onclick: function () { downloadPicked(get); } }, [document.createTextNode(L('고른 것 받기 (ZIP)', 'Download selected (ZIP)'))]);
+    els.pickBar.appendChild(el('span', {}, [el('b', { text: String(ids.length) }), document.createTextNode(L('개 고름', ' selected'))]));
     els.pickBar.appendChild(get);
-    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', title: 'AI 에게 "이것들 넣어줘" 할 때 붙여넣기', onclick: function (e) { copy(ids.join(', '), e.currentTarget); } }, [document.createTextNode('id 복사')]));
-    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', onclick: function () { state.picked = {}; renderPickBar(); } }, [document.createTextNode('고른 것 지우기')]));
+    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', title: L('AI 에게 "이것들 넣어줘" 할 때 붙여넣기', 'Paste into your AI when asking it to add these'), onclick: function (e) { copy(ids.join(', '), e.currentTarget); } }, [document.createTextNode(L('id 복사', 'Copy ids'))]));
+    els.pickBar.appendChild(el('button', { class: 'btn', type: 'button', onclick: function () { state.picked = {}; renderPickBar(); } }, [document.createTextNode(L('고른 것 지우기', 'Clear selection'))]));
   }
   cards.forEach(function (c) {
     var p = c.card.querySelector('.pick');

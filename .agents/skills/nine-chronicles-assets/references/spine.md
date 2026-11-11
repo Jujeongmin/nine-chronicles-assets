@@ -50,6 +50,22 @@ Use `registerSpine` in `index.html` as the implementation reference:
 5. Each frame, call `animationState.update(dtSeconds)`, `apply`, and `skeleton.updateWorldTransform()`, then draw. Time is in **seconds**.
 6. When drawing an actor into a fixed-size canvas or texture, compute the framing bounds across every motion the game uses by sampling each animation through its duration. Do not frame from the idle or setup pose alone, or taller motions such as hops and jumps will be clipped. If the larger bounds make the actor smaller, scale its display size to compensate.
 
+### Boxes around characters in a published game
+
+If characters look fine in the editor but show rectangular boxes around attachments after deployment, the hosting gateway re-encoded a large atlas image and left color in fully transparent pixels. Premultiplied rendering adds that color to the background. Redraw each atlas image on a 2D canvas before upload; the canvas stores premultiplied pixels, so color under zero alpha becomes zero. Add this right after creating the AssetManager and before `loadTextureAtlas`, and do not replace image files (same-name files can stay cached):
+
+```js
+function cleanTransparent(image) {
+  const canvas = document.createElement('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  canvas.getContext('2d').drawImage(image, 0, 0);
+  return canvas;
+}
+const load = manager.textureLoader;
+manager.textureLoader = (image) => load(cleanTransparent(image));
+```
+
 Additional functions to inspect only for viewer changes: `ensureThumbSpineCanvas`, `visibleBounds`, `createSpineThumb`, `renderDetail`.
 
 - Previews and details share one offscreen 512×512 WebGL canvas, copying results into individual 2D canvases. Keep it attached outside the visible area: detaching it from the DOM can make clientWidth/Height zero.
